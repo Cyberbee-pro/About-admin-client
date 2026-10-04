@@ -112,11 +112,9 @@ export default function LoginClient({
           />
         </div>
 
-        {/* Center Main Heading with Forced Inline Exo 2 Font & CSS Variable Fallback */}
+        {/* Center Main Heading with Forced Inline Exo 2 Font */}
         <div className="relative z-10 w-full max-w-xl px-6">
-          <h1 
-            style={{ fontFamily: "var(--font-exo2), 'Exo 2', sans-serif" }}
-            className="font-black text-5xl sm:text-6xl lg:text-7xl tracking-tight text-[#a6e3a1] leading-[1.1] drop-shadow-[0_0_35px_rgba(166,227,161,0.3)]"
+          <h1 className=" font-exo2 text-5xl sm:text-6xl lg:text-7xl tracking-tight text-[#a6e3a1] leading-[1.1] drop-shadow-[0_0_35px_rgba(166,227,161,0.3)]"
           >
             Cyberbee&apos;s <br />
             portfolio manager
@@ -150,10 +148,7 @@ export default function LoginClient({
         {/* Terminal Container Card */}
         <div className="relative z-10 w-full max-w-md mx-auto px-4">
           {/* Terminal Heading with Forced Inline Exo 2 Font */}
-          <h2 
-            style={{ fontFamily: "var(--font-exo2), 'Exo 2', sans-serif" }}
-            className="font-bold text-3xl sm:text-4xl text-[#cdd6f4] tracking-[0.25em] uppercase text-center mb-10"
-          >
+         <h2 className="font-exo2 font-bold text-3xl sm:text-4xl text-[#cdd6f4] tracking-[0.25em] uppercase text-center mb-10">
             LOGIN TERMINAL
           </h2>
 
