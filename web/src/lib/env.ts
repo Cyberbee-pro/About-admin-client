@@ -78,3 +78,4 @@ export const getGitHubClientId = (): string => getRequiredEnv("GITHUB_CLIENT_ID"
 export const getGitHubClientSecret = (): string => getRequiredEnv("GITHUB_CLIENT_SECRET");
 export const getAdminPassword = (): string => getRequiredEnv("ADMIN_PASSWORD");
 export const getAdminSessionSecret = (): string => getRequiredEnv("ADMIN_SESSION_SECRET");
+export const getPortfolioUrl = (): string => getRequiredEnv("NEXT_PUBLIC_PORTFOLIO_URL");
