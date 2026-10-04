@@ -94,7 +94,7 @@ export default function LoginClient({
       {/* ========================================================================= */}
       <section
         aria-label="Portfolio Branding"
-        className="relative min-h-[40vh] lg:min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-16 overflow-hidden border-b lg:border-b-0 lg:border-r border-[#313244]/50"
+        className="relative min-h-[40vh] lg:min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-20 overflow-hidden border-b lg:border-b-0 lg:border-r border-[#313244]/50"
       >
         {/* WebGL PatternWaves Background */}
         <div className="absolute inset-0 z-0 opacity-80 pointer-events-auto">
@@ -112,9 +112,12 @@ export default function LoginClient({
           />
         </div>
 
-        {/* Center Main Heading (Exo 2 font) */}
-        <div className="relative z-10 w-full max-w-lg px-4">
-          <h1 className="font-[family-name:var(--font-exo2)] font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight text-[#a6e3a1] leading-[1.15] drop-shadow-[0_0_30px_rgba(166,227,161,0.25)]">
+        {/* Center Main Heading with Forced Inline Exo 2 Font & CSS Variable Fallback */}
+        <div className="relative z-10 w-full max-w-xl px-6">
+          <h1 
+            style={{ fontFamily: "var(--font-exo2), 'Exo 2', sans-serif" }}
+            className="font-black text-5xl sm:text-6xl lg:text-7xl tracking-tight text-[#a6e3a1] leading-[1.1] drop-shadow-[0_0_35px_rgba(166,227,161,0.3)]"
+          >
             Cyberbee&apos;s <br />
             portfolio manager
           </h1>
@@ -126,7 +129,7 @@ export default function LoginClient({
       {/* ========================================================================= */}
       <section
         aria-label="Login Terminal"
-        className="relative min-h-[60vh] lg:min-h-screen flex items-center justify-left p-6 sm:p-10 lg:p-16 overflow-hidden bg-[#181825]"
+        className="relative min-h-[60vh] lg:min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-20 overflow-hidden bg-[#181825]"
       >
         {/* Three.js PixelBlast Dither Background */}
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-auto">
@@ -144,28 +147,13 @@ export default function LoginClient({
           />
         </div>
 
-        {/* Clean, Uncluttered Terminal Container */}
-        <div className="relative z-10 w-full max-w-md">
-          {/* Target Emblem */}
-          {/* <div
-            className="flex justify-center mb-3 text-[#a6e3a1]"
-            aria-hidden="true"
+        {/* Terminal Container Card */}
+        <div className="relative z-10 w-full max-w-md mx-auto px-4">
+          {/* Terminal Heading with Forced Inline Exo 2 Font */}
+          <h2 
+            style={{ fontFamily: "var(--font-exo2), 'Exo 2', sans-serif" }}
+            className="font-bold text-3xl sm:text-4xl text-[#cdd6f4] tracking-[0.25em] uppercase text-center mb-10"
           >
-            <svg
-              className="w-8 h-8"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
-            </svg>
-          </div> */}
-
-          {/* Clean Terminal Heading */}
-          <h2 className="font-[family-name:var(--font-exo2)] font-bold text-3xl sm:text-4xl text-[#cdd6f4] tracking-[0.2em] uppercase text-center mb-8">
             LOGIN TERMINAL
           </h2>
 
@@ -173,23 +161,23 @@ export default function LoginClient({
           {error && (
             <div
               role="alert"
-              className="mb-6 p-3 rounded bg-[#f38ba8]/10 border border-[#f38ba8]/40 text-[#f38ba8] text-xs font-mono flex items-start gap-2 animate-in fade-in duration-200"
+              className="w-full mb-6 p-3.5 rounded bg-[#f38ba8]/10 border border-[#f38ba8]/40 text-[#f38ba8] text-xs font-mono flex items-start gap-2 animate-in fade-in duration-200"
             >
               <span className="font-bold">[ERR]:</span>
               <span>{error}</span>
             </div>
           )}
 
-          {/* Form Fields */}
-          <div className="space-y-6">
+          {/* Form Fields spanning full width */}
+          <div className="space-y-6 w-full">
             {/* Field 1: GitHub Authentication */}
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <label className="block font-mono text-xs tracking-wider text-[#a6adc8] uppercase">
                 GITHUB
               </label>
 
               {githubVerified ? (
-                <div className="w-full px-4 py-3 rounded bg-[#11111b] border border-[#a6e3a1]/60 text-[#a6e3a1] font-mono text-xs flex items-center justify-between">
+                <div className="w-full px-5 py-3.5 rounded bg-[#11111b] border border-[#a6e3a1]/60 text-[#a6e3a1] font-mono text-xs flex items-center justify-between">
                   <span>Cyberbee-pro</span>
                   <span className="text-[11px] font-semibold tracking-wider text-[#a6e3a1]">
                     ✓ VERIFIED
@@ -198,7 +186,7 @@ export default function LoginClient({
               ) : (
                 <a
                   href="/api/auth/github"
-                  className="cursor-target w-full py-3 px-4 rounded bg-[#11111b] hover:bg-[#1e1e2e] text-[#cdd6f4] border border-[#45475a] hover:border-[#a6e3a1] font-mono text-xs tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all"
+                  className="cursor-target w-full py-3.5 px-5 rounded bg-[#11111b] hover:bg-[#1e1e2e] text-[#cdd6f4] border border-[#45475a] hover:border-[#a6e3a1] font-mono text-xs tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all"
                 >
                   <svg
                     className="w-4 h-4 fill-current"
@@ -217,7 +205,7 @@ export default function LoginClient({
             </div>
 
             {/* Field 2: Administrative Passphrase */}
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <label
                 htmlFor="terminal-password"
                 className="block font-mono text-xs tracking-wider text-[#a6adc8] uppercase"
@@ -232,13 +220,13 @@ export default function LoginClient({
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={!githubVerified || isSubmitting}
                 placeholder={githubVerified ? "/@********(<3)" : "Authenticate GitHub first"}
-                className="cursor-target w-full px-4 py-3 rounded bg-[#11111b] border border-[#45475a] focus:border-[#a6e3a1] text-[#cdd6f4] placeholder-[#585b70] font-mono text-sm tracking-widest outline-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="cursor-target w-full px-5 py-3.5 rounded bg-[#11111b] border border-[#45475a] focus:border-[#a6e3a1] text-[#cdd6f4] placeholder-[#585b70] font-mono text-sm tracking-widest outline-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
             {/* Submit Action: SlideCommit Component */}
-            <div className="pt-2 flex justify-center">
-              <div className="cursor-target">
+            <div className="pt-2 w-full">
+              <div className="cursor-target w-full">
                 <SlideCommit
                   label="SLIDE TO AUTHENTICATE"
                   doneLabel="ACCESS GRANTED"
@@ -248,21 +236,26 @@ export default function LoginClient({
                   handleColor="#a6e3a1"
                   successColor="#a6e3a1"
                   dangerColor="#f38ba8"
-                  width={340}
+                  width="100%"
                   height={52}
                   radius={10}
                   disabled={!githubVerified || isSubmitting}
+                  className="w-full"
                 />
               </div>
             </div>
 
             {/* Secondary Action: External Portfolio Link */}
-            <div className="pt-4 flex justify-center">
+            <div className="pt-2 w-full">
               <a
-                href={portfolioUrl}
+                href={
+                  portfolioUrl.startsWith("http://") || portfolioUrl.startsWith("https://")
+                    ? portfolioUrl
+                    : `https://${portfolioUrl}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="cursor-target inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded bg-[#11111b] hover:bg-[#1e1e2e] border border-[#45475a] hover:border-[#a6e3a1] text-[#cdd6f4] font-mono text-xs tracking-wider transition-colors"
+                className="cursor-target w-full py-3.5 px-5 rounded bg-[#11111b] hover:bg-[#1e1e2e] text-[#cdd6f4] border border-[#45475a] hover:border-[#a6e3a1] font-mono text-xs tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all"
               >
                 <span aria-hidden="true">&larr;</span>
                 <span>Go to portfolio</span>

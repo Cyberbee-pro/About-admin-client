@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #1e1e2e;
   --foreground: #cdd6f4;
+  --font-exo2: 'Exo 2', sans-serif;
 
   /* Catppuccin Mocha Palette */
   --ctp-rosewater: #f5e0dc;
@@ -85,4 +87,9 @@ body {
 
 .cyber-glow-red {
   box-shadow: 0 0 15px rgba(243, 139, 168, 0.25), inset 0 0 15px rgba(243, 139, 168, 0.1);
+}
+
+/* Explicit Exo 2 font utility class with important override */
+.font-exo2 {
+  font-family: var(--font-exo2), 'Exo 2', sans-serif !important;
 }

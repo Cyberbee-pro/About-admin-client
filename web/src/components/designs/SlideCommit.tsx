@@ -145,25 +145,19 @@ export default function SlideCommit({
   const lastPercent = useRef(0);
 
   const GRIP = height - PAD * 2;
-  const [measuredWidth, setMeasuredWidth] = useState<number>(() => {
-    return typeof width === "number" ? width : 340;
-  });
+  const [measuredWidth, setMeasuredWidth] = useState<number>(340);
 
   useEffect(() => {
-    if (typeof width === "number") {
-      setMeasuredWidth(width);
-      return;
-    }
+    if (typeof width === "number") return;
     const el = trackRef.current;
     if (!el) return;
-    const update = () => {
-      const rect = el.getBoundingClientRect();
-      if (rect.width > 0) {
-        setMeasuredWidth(rect.width);
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setMeasuredWidth(entry.contentRect.width);
+        }
       }
-    };
-    update();
-    const ro = new ResizeObserver(update);
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, [width]);
@@ -313,7 +307,7 @@ export default function SlideCommit({
   const commit = (viaKey: boolean) => {
     if (timer.current) clearTimeout(timer.current);
     const id = ++run.current;
-    x.set(TRAVEL);
+    x.set(travelMV.get());
     let out: unknown;
     try {
       out = onConfirm?.();
@@ -385,7 +379,8 @@ export default function SlideCommit({
       g.grab = at - x.get();
       return;
     }
-    const next = clamp(at - g.grab, 0, TRAVEL);
+    const tr = travelMV.get();
+    const next = clamp(at - g.grab, 0, tr);
     if (Math.abs(next - x.get()) > 0.5) g.moved = true;
     g.hist.push([e.timeStamp, next]);
     if (g.hist.length > 4) g.hist.shift();
@@ -401,7 +396,8 @@ export default function SlideCommit({
       trackRef.current?.releasePointerCapture(e.pointerId);
     } catch {}
     setHeld(false);
-    if (x.get() >= TRAVEL) commit(false);
+    const tr = travelMV.get();
+    if (x.get() >= tr) commit(false);
     else if (g.moved) goHome(velocityOf(g.hist));
   };
   useEffect(() => {
@@ -410,15 +406,16 @@ export default function SlideCommit({
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (disabled || phase === "pending" || phase === "done") return;
-    const step = TRAVEL / 10;
+    const tr = travelMV.get();
+    const step = tr / 10;
     if (e.key === "End") {
       e.preventDefault();
       commit(true);
     } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
       e.preventDefault();
-      const next = Math.min(TRAVEL, x.get() + step);
+      const next = Math.min(tr, x.get() + step);
       x.set(next);
-      if (next >= TRAVEL) commit(true);
+      if (next >= tr) commit(true);
     } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
       e.preventDefault();
       x.set(Math.max(0, x.get() - step));

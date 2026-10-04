@@ -16,6 +16,7 @@ const exo2 = Exo_2({
   variable: "--font-exo2",
   subsets: ["latin"],
   weight: ["400", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
