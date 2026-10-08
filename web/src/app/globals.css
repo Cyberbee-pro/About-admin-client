@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --background: #12121b; /* Deepened for maximum contrast */
+  --foreground: #ffffff; /* Pure crisp white for peak readability */
+
+  /* Enhanced High-Contrast Catppuccin Mocha Palette */
+  --ctp-rosewater: #f5e0dc;
+  --ctp-flamingo: #f2cdcd;
+  --ctp-pink: #f5c2e7;
+  --ctp-mauve: #d0a9ff; /* Brighter, punchier mauve */
+  --ctp-red: #ff5577;   /* Higher contrast vibrant red */
+  --ctp-maroon: #eba0ac;
+  --ctp-peach: #ff9e64;
+  --ctp-yellow: #f9e2af;
+  --ctp-green: #39ff14; /* High-contrast neon terminal green */
+  --ctp-teal: #94e2d5;
+  --ctp-sky: #89dceb;
+  --ctp-sapphire: #74c7ec;
+  --ctp-blue: #89b4fa;
+  --ctp-lavender: #b4befe;
+  --ctp-text: #f8f9ff;   /* Brightened foreground text */
+  --ctp-subtext1: #d0d3e0;
+  --ctp-subtext0: #a9adc1;
+  --ctp-overlay2: #9399b2;
+  --ctp-overlay1: #7f849c;
+  --ctp-overlay0: #6c7086;
+  --ctp-surface2: #585b70;
+  --ctp-surface1: #45475a;
+  --ctp-surface0: #2a2b3d; /* Richer surface depth */
+  --ctp-base: #12121b;     /* Deepened dark base */
+  --ctp-mantle: #0d0d12;   /* Darker framing mantle */
+  --ctp-crust: #07070a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-ctp-rosewater: var(--ctp-rosewater);
+  --color-ctp-flamingo: var(--ctp-flamingo);
+  --color-ctp-pink: var(--ctp-pink);
+  --color-ctp-mauve: var(--ctp-mauve);
+  --color-ctp-red: var(--ctp-red);
+  --color-ctp-maroon: var(--ctp-maroon);
+  --color-ctp-peach: var(--ctp-peach);
+  --color-ctp-yellow: var(--ctp-yellow);
+  --color-ctp-green: var(--ctp-green);
+  --color-ctp-teal: var(--ctp-teal);
+  --color-ctp-sky: var(--ctp-sky);
+  --color-ctp-sapphire: var(--ctp-sapphire);
+  --color-ctp-blue: var(--ctp-blue);
+  --color-ctp-lavender: var(--ctp-lavender);
+  --color-ctp-text: var(--ctp-text);
+  --color-ctp-subtext1: var(--ctp-subtext1);
+  --color-ctp-subtext0: var(--ctp-subtext0);
+  --color-ctp-overlay2: var(--ctp-overlay2);
+  --color-ctp-overlay1: var(--ctp-overlay1);
+  --color-ctp-overlay0: var(--ctp-overlay0);
+  --color-ctp-surface2: var(--ctp-surface2);
+  --color-ctp-surface1: var(--ctp-surface1);
+  --color-ctp-surface0: var(--ctp-surface0);
+  --color-ctp-base: var(--ctp-base);
+  --color-ctp-mantle: var(--ctp-mantle);
+  --color-ctp-crust: var(--ctp-crust);
+}
+
+body {
+  background: var(--ctp-base);
+  color: var(--ctp-text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Custom cyberpunk terminal scanline and intensified glow effects */
+.cyber-glow-mauve {
+  box-shadow: 0 0 20px rgba(208, 169, 255, 0.35), inset 0 0 15px rgba(208, 169, 255, 0.15);
+}
+
+.cyber-glow-green {
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.35), inset 0 0 15px rgba(57, 255, 20, 0.15);
+}
+
+.cyber-glow-red {
+  box-shadow: 0 0 20px rgba(255, 85, 119, 0.35), inset 0 0 15px rgba(255, 85, 119, 0.15);
+}
+
+/* Explicit Exo 2 font utility class with important override */
+.font-exo2 {
+  font-family: var(--font-exo2), sans-serif !important;
+}
