@@ -7,19 +7,11 @@ import {
   verifyAuthStageToken,
 } from "@/lib/auth/session";
 import { getPortfolioUrl } from "@/lib/env";
+import { getSafeReturnTo } from "@/lib/auth/returnTo";
 import LoginClient from "./LoginClient";
 
 interface LoginPageProps {
   searchParams: Promise<{ stage?: string; returnTo?: string }>;
-}
-
-export function getSafeReturnTo(raw: string | undefined): string {
-  if (!raw || typeof raw !== "string") return "/dashboard";
-  // Must start with a single slash, not double slash or backslash
-  if (raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\")) {
-    return raw;
-  }
-  return "/dashboard";
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {

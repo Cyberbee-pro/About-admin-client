@@ -10,7 +10,7 @@ import {
   createAdminSessionToken,
   verifyAdminSessionToken,
 } from "@/lib/auth/session";
-import { getSafeReturnTo } from "@/app/login/page";
+import { getSafeReturnTo } from "@/lib/auth/returnTo";
 
 describe("Login Page & Portfolio URL Validation", () => {
   const originalEnv = { ...process.env };
