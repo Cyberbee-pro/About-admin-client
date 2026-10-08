@@ -10,6 +10,7 @@ import {
   createAdminSessionToken,
   verifyAdminSessionToken,
 } from "@/lib/auth/session";
+import { getSafeReturnTo } from "@/app/login/page";
 
 describe("Login Page & Portfolio URL Validation", () => {
   const originalEnv = { ...process.env };
@@ -90,6 +91,36 @@ describe("Login Page & Portfolio URL Validation", () => {
       assert.ok(verified);
       assert.strictEqual(verified.role, "admin");
       assert.strictEqual(verified.username, "Cyberbee-pro");
+    });
+  });
+
+  describe("getSafeReturnTo Open Redirect Guard", () => {
+    test("defaults to /dashboard when input is undefined or empty", () => {
+      assert.strictEqual(getSafeReturnTo(undefined), "/dashboard");
+      assert.strictEqual(getSafeReturnTo(""), "/dashboard");
+      assert.strictEqual(getSafeReturnTo(null as unknown as string), "/dashboard");
+    });
+
+    test("allows valid relative same-origin paths", () => {
+      assert.strictEqual(getSafeReturnTo("/dashboard"), "/dashboard");
+      assert.strictEqual(getSafeReturnTo("/dashboard/projects"), "/dashboard/projects");
+      assert.strictEqual(getSafeReturnTo("/admin/logs?limit=50"), "/admin/logs?limit=50");
+    });
+
+    test("neutralizes protocol-relative URLs (//attacker.com)", () => {
+      assert.strictEqual(getSafeReturnTo("//attacker.com"), "/dashboard");
+      assert.strictEqual(getSafeReturnTo("//evil.com/phish"), "/dashboard");
+    });
+
+    test("neutralizes Windows backslash path bypasses (/\\attacker.com)", () => {
+      assert.strictEqual(getSafeReturnTo("/\\attacker.com"), "/dashboard");
+      assert.strictEqual(getSafeReturnTo("/\\evil.com/path"), "/dashboard");
+    });
+
+    test("neutralizes absolute external URLs", () => {
+      assert.strictEqual(getSafeReturnTo("https://attacker.com"), "/dashboard");
+      assert.strictEqual(getSafeReturnTo("http://attacker.com"), "/dashboard");
+      assert.strictEqual(getSafeReturnTo("javascript:alert(1)"), "/dashboard");
     });
   });
 });

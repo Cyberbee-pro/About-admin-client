@@ -1,38 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #1e1e2e;
-  --foreground: #cdd6f4;
-  --font-exo2: 'Exo 2', sans-serif;
+  --background: #12121b; /* Deepened for maximum contrast */
+  --foreground: #ffffff; /* Pure crisp white for peak readability */
 
-  /* Catppuccin Mocha Palette */
+  /* Enhanced High-Contrast Catppuccin Mocha Palette */
   --ctp-rosewater: #f5e0dc;
   --ctp-flamingo: #f2cdcd;
   --ctp-pink: #f5c2e7;
-  --ctp-mauve: #cba6f7;
-  --ctp-red: #f38ba8;
+  --ctp-mauve: #d0a9ff; /* Brighter, punchier mauve */
+  --ctp-red: #ff5577;   /* Higher contrast vibrant red */
   --ctp-maroon: #eba0ac;
-  --ctp-peach: #fab387;
+  --ctp-peach: #ff9e64;
   --ctp-yellow: #f9e2af;
-  --ctp-green: #a6e3a1;
+  --ctp-green: #39ff14; /* High-contrast neon terminal green */
   --ctp-teal: #94e2d5;
   --ctp-sky: #89dceb;
   --ctp-sapphire: #74c7ec;
   --ctp-blue: #89b4fa;
   --ctp-lavender: #b4befe;
-  --ctp-text: #cdd6f4;
-  --ctp-subtext1: #bac2de;
-  --ctp-subtext0: #a6adc8;
+  --ctp-text: #f8f9ff;   /* Brightened foreground text */
+  --ctp-subtext1: #d0d3e0;
+  --ctp-subtext0: #a9adc1;
   --ctp-overlay2: #9399b2;
   --ctp-overlay1: #7f849c;
   --ctp-overlay0: #6c7086;
   --ctp-surface2: #585b70;
   --ctp-surface1: #45475a;
-  --ctp-surface0: #313244;
-  --ctp-base: #1e1e2e;
-  --ctp-mantle: #181825;
-  --ctp-crust: #11111b;
+  --ctp-surface0: #2a2b3d; /* Richer surface depth */
+  --ctp-base: #12121b;     /* Deepened dark base */
+  --ctp-mantle: #0d0d12;   /* Darker framing mantle */
+  --ctp-crust: #07070a;
 }
 
 @theme inline {
@@ -40,7 +38,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-exo2: var(--font-exo2);
 
   --color-ctp-rosewater: var(--ctp-rosewater);
   --color-ctp-flamingo: var(--ctp-flamingo);
@@ -76,20 +73,20 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-/* Custom cyberpunk terminal scanline and glow effects */
+/* Custom cyberpunk terminal scanline and intensified glow effects */
 .cyber-glow-mauve {
-  box-shadow: 0 0 15px rgba(203, 166, 247, 0.25), inset 0 0 15px rgba(203, 166, 247, 0.1);
+  box-shadow: 0 0 20px rgba(208, 169, 255, 0.35), inset 0 0 15px rgba(208, 169, 255, 0.15);
 }
 
 .cyber-glow-green {
-  box-shadow: 0 0 15px rgba(166, 227, 161, 0.25), inset 0 0 15px rgba(166, 227, 161, 0.1);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.35), inset 0 0 15px rgba(57, 255, 20, 0.15);
 }
 
 .cyber-glow-red {
-  box-shadow: 0 0 15px rgba(243, 139, 168, 0.25), inset 0 0 15px rgba(243, 139, 168, 0.1);
+  box-shadow: 0 0 20px rgba(255, 85, 119, 0.35), inset 0 0 15px rgba(255, 85, 119, 0.15);
 }
 
 /* Explicit Exo 2 font utility class with important override */
 .font-exo2 {
-  font-family: var(--font-exo2), 'Exo 2', sans-serif !important;
+  font-family: var(--font-exo2), sans-serif !important;
 }

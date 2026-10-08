@@ -23,6 +23,14 @@ export interface RequestOptions {
    * Can also be a custom bearer token string.
    */
   auth?: boolean | string;
+  /**
+   * Request timeout in milliseconds. Defaults to 10000 (10 seconds).
+   */
+  timeoutMs?: number;
+  /**
+   * Optional custom AbortSignal.
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -84,10 +92,19 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
     }
   }
 
+  const timeoutMs = options.timeoutMs ?? 10000;
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const signal = options.signal
+    ? (typeof AbortSignal.any === "function"
+        ? AbortSignal.any([options.signal, timeoutSignal])
+        : options.signal)
+    : timeoutSignal;
+
   const response = await fetch(fullUrl, {
     method: options.method || "GET",
     headers,
     body: requestBody,
+    signal,
   });
 
   const contentType = response.headers.get("content-type");

@@ -110,4 +110,42 @@ describe("Shared API Client", () => {
       }
     );
   });
+
+  test("passes default AbortSignal timeout to fetch", async () => {
+    let capturedSignal: AbortSignal | undefined;
+
+    global.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      capturedSignal = init?.signal as AbortSignal;
+      return new Response(JSON.stringify({ success: true, data: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    await apiClient("/api/v1/projects");
+
+    assert.ok(capturedSignal instanceof AbortSignal);
+    assert.strictEqual(capturedSignal.aborted, false);
+  });
+
+  test("respects custom signal and timeoutMs options", async () => {
+    let capturedSignal: AbortSignal | undefined;
+
+    global.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      capturedSignal = init?.signal as AbortSignal;
+      return new Response(JSON.stringify({ success: true, data: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    const controller = new AbortController();
+    await apiClient("/api/v1/projects", {
+      timeoutMs: 5000,
+      signal: controller.signal,
+    });
+
+    assert.ok(capturedSignal instanceof AbortSignal);
+    assert.strictEqual(capturedSignal.aborted, false);
+  });
 });

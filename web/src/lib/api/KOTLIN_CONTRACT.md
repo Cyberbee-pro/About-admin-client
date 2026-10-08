@@ -83,6 +83,11 @@ data class Project(
 ## 2. Site Configuration & Logs
 
 ```kotlin
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonElement
+
 @Serializable
 data class SiteConfig(
     @SerialName("_id") val id: String? = null,
@@ -108,7 +113,8 @@ data class LogEntry(
     val statusCode: Int,
     val ip: String,
     val message: String,
-    val metadata: Map<String, String>? = null,
+    // Use JsonObject (or Map<String, JsonElement>) for nested JSON object type safety
+    val metadata: JsonObject? = null,
     val stack: String? = null
 )
 ```
