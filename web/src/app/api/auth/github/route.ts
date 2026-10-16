@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getGitHubClientId, toEnvErrorResponse } from "@/lib/env";
 import { generateRandomToken } from "@/lib/auth/crypto";
 import { COOKIE_OAUTH_STATE, OAUTH_STATE_EXPIRY_SECONDS, setHttpOnlyCookie } from "@/lib/auth/session";
+import { getGitHubCallbackUrl } from "@/lib/auth/origin";
 
-export async function GET() {
+export async function GET(request?: NextRequest) {
   try {
     const clientId = getGitHubClientId();
     const state = generateRandomToken();
@@ -12,6 +13,11 @@ export async function GET() {
     redirectUrl.searchParams.set("client_id", clientId);
     redirectUrl.searchParams.set("scope", "read:user");
     redirectUrl.searchParams.set("state", state);
+
+    const callbackUrl = getGitHubCallbackUrl(request);
+    if (callbackUrl) {
+      redirectUrl.searchParams.set("redirect_uri", callbackUrl);
+    }
 
     const response = NextResponse.redirect(redirectUrl.toString());
     setHttpOnlyCookie(response, COOKIE_OAUTH_STATE, state, OAUTH_STATE_EXPIRY_SECONDS);

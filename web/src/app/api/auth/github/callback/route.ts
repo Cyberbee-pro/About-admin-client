@@ -14,6 +14,7 @@ import {
   clearHttpOnlyCookie,
 } from "@/lib/auth/session";
 import { timingSafeCompare } from "@/lib/auth/crypto";
+import { getAppOrigin } from "@/lib/auth/origin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -125,7 +126,8 @@ export async function GET(request: NextRequest) {
 
     // Issue intermediate auth_stage token and redirect to login terminal for password step
     const stageToken = createAuthStageToken("Cyberbee-pro");
-    const redirectUrl = new URL("/login", request.url);
+    const origin = getAppOrigin(request);
+    const redirectUrl = new URL("/login", origin);
     redirectUrl.searchParams.set("stage", "password");
 
     const response = NextResponse.redirect(redirectUrl.toString());

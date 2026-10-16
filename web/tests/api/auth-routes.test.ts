@@ -62,6 +62,31 @@ describe("Authentication Routes & Security Guards", () => {
       assert.ok(setCookie);
       assert.ok(setCookie.includes(COOKIE_OAUTH_STATE));
     });
+
+    test("dynamically includes redirect_uri with production host when x-forwarded headers are present", async () => {
+      const req = new NextRequest("http://localhost:3000/api/auth/github", {
+        headers: {
+          "x-forwarded-host": "client.shibraj.dev",
+          "x-forwarded-proto": "https",
+        },
+      });
+
+      const res = await getGithubAuth(req);
+      assert.strictEqual(res.status, 307);
+      const location = res.headers.get("location");
+      assert.ok(location);
+      assert.ok(location.includes("redirect_uri=https%3A%2F%2Fclient.shibraj.dev%2Fapi%2Fauth%2Fgithub%2Fcallback"));
+    });
+
+    test("respects GITHUB_REDIRECT_URI environment variable when configured", async () => {
+      process.env.GITHUB_REDIRECT_URI = "https://custom.shibraj.dev/oauth/cb";
+
+      const res = await getGithubAuth();
+      assert.strictEqual(res.status, 307);
+      const location = res.headers.get("location");
+      assert.ok(location);
+      assert.ok(location.includes("redirect_uri=https%3A%2F%2Fcustom.shibraj.dev%2Foauth%2Fcb"));
+    });
   });
 
   describe("GET /api/auth/github/callback", () => {
@@ -146,6 +171,41 @@ describe("Authentication Routes & Security Guards", () => {
       const setCookie = res.headers.get("set-cookie");
       assert.ok(setCookie);
       assert.ok(setCookie.includes(COOKIE_AUTH_STAGE));
+    });
+
+    test("redirects to live Vercel domain instead of localhost when x-forwarded headers are present", async () => {
+      const state = "prod-state-123";
+
+      global.fetch = (async (input: RequestInfo | URL) => {
+        const urlStr = String(input);
+        if (urlStr.includes("access_token")) {
+          return new Response(JSON.stringify({ access_token: "mock-gh-token" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (urlStr.includes("api.github.com/user")) {
+          return new Response(JSON.stringify({ login: "Cyberbee-pro", id: 12345 }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response("Not found", { status: 404 });
+      }) as typeof fetch;
+
+      const req = new NextRequest(`http://localhost:3000/api/auth/github/callback?code=valid-code&state=${state}`, {
+        headers: {
+          cookie: `${COOKIE_OAUTH_STATE}=${state}`,
+          "x-forwarded-host": "client.shibraj.dev",
+          "x-forwarded-proto": "https",
+        },
+      });
+
+      const res = await getGithubCallback(req);
+      assert.strictEqual(res.status, 307);
+      const location = res.headers.get("location");
+      assert.ok(location);
+      assert.strictEqual(location, "https://client.shibraj.dev/login?stage=password");
     });
   });
 
