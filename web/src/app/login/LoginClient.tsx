@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import LiquidButton from "@/components/LiquidButton";
 
 // Dynamically import WebGL design components with SSR disabled to guarantee hydration safety
 const PatternWaves = dynamic(() => import("@/components/designs/PatternWaves"), {
@@ -80,13 +81,13 @@ export default function LoginClient({
   };
 
   return (
-    <main className="relative min-h-screen w-full bg-[#1e1e2e] text-[#cdd6f4] flex flex-col lg:grid lg:grid-cols-2 overflow-x-hidden selection:bg-[#a6e3a1] selection:text-[#11111b]">
+    <main className="relative min-h-screen w-full bg-eva-black text-eva-text flex flex-col lg:grid lg:grid-cols-2 overflow-x-hidden selection:bg-eva-lime selection:text-eva-black">
       {/* Target Cursor Component */}
       <TargetCursor
         targetSelector=".cursor-target"
-        cursorColor="#a6e3a1"
-        cursorColorOnTarget="#cba6f7"
-        spinDuration={2.5}
+        cursorColor="#B0DD09"
+        cursorColorOnTarget="#ff5577"
+        spinDuration={2}
       />
 
       {/* ========================================================================= */}
@@ -94,14 +95,14 @@ export default function LoginClient({
       {/* ========================================================================= */}
       <section
         aria-label="Portfolio Branding"
-        className="relative min-h-[40vh] lg:min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-20 overflow-hidden border-b lg:border-b-0 lg:border-r border-[#313244]/50"
+        className="relative min-h-[40vh] lg:min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-20 overflow-hidden border-b lg:border-b-0 lg:border-r border-eva-surface-border/50"
       >
         {/* WebGL PatternWaves Background */}
         <div className="absolute inset-0 z-0 opacity-80 pointer-events-auto">
           <PatternWaves
             preset="terminal"
             color="#ffffff"
-            backgroundColor="#120f17"
+            backgroundColor="#12121b"
             fade="edges"
             fadeSize={0.4}
             interactive={true}
@@ -114,8 +115,7 @@ export default function LoginClient({
 
         {/* Center Main Heading with Forced Inline Exo 2 Font */}
         <div className="relative z-10 w-full max-w-xl px-6">
-          <h1 className=" font-exo2 text-5xl sm:text-6xl lg:text-7xl tracking-tight text-[#a6e3a1] leading-[1.1] drop-shadow-[0_0_35px_rgba(166,227,161,0.3)]"
-          >
+          <h1 className="font-exo2 text-5xl sm:text-6xl lg:text-7xl tracking-tight text-eva-lime leading-[1.1] drop-shadow-[0_0_35px_rgba(176,221,9,0.3)]">
             Cyberbee&apos;s <br />
             portfolio manager
           </h1>
@@ -127,13 +127,13 @@ export default function LoginClient({
       {/* ========================================================================= */}
       <section
         aria-label="Login Terminal"
-        className="relative min-h-[60vh] lg:min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-20 overflow-hidden bg-[#181825]"
+        className="relative min-h-[60vh] lg:min-h-screen flex items-center justify-center p-8 sm:p-12 lg:p-20 overflow-hidden bg-eva-charcoal"
       >
         {/* Three.js PixelBlast Dither Background */}
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-auto">
           <PixelBlast
             variant="circle"
-            color="#a6e3a1"
+            color="#b0dd09"
             pixelSize={3}
             patternScale={4}
             patternDensity={0.8}
@@ -148,7 +148,7 @@ export default function LoginClient({
         {/* Terminal Container Card */}
         <div className="relative z-10 w-full max-w-md mx-auto px-4">
           {/* Terminal Heading with Forced Inline Exo 2 Font */}
-         <h2 className="font-exo2 font-bold text-3xl sm:text-4xl text-[#cdd6f4] tracking-[0.25em] uppercase text-center mb-10">
+          <h2 className="font-exo2 font-bold text-3xl sm:text-4xl text-eva-text tracking-[0.25em] uppercase text-center mb-10">
             LOGIN TERMINAL
           </h2>
 
@@ -156,7 +156,7 @@ export default function LoginClient({
           {error && (
             <div
               role="alert"
-              className="w-full mb-6 p-3.5 rounded bg-[#f38ba8]/10 border border-[#f38ba8]/40 text-[#f38ba8] text-xs font-mono flex items-start gap-2 animate-in fade-in duration-200"
+              className="w-full mb-6 p-3.5 rounded bg-eva-red/10 border border-eva-red/40 text-eva-red text-xs font-mono flex items-start gap-2 animate-in fade-in duration-200"
             >
               <span className="font-bold">[ERR]:</span>
               <span>{error}</span>
@@ -167,21 +167,21 @@ export default function LoginClient({
           <div className="space-y-6 w-full">
             {/* Field 1: GitHub Authentication */}
             <div className="space-y-2 w-full">
-              <label className="block font-mono text-xs tracking-wider text-[#a6adc8] uppercase">
+              <label className="block font-mono text-xs tracking-wider text-eva-text-muted uppercase">
                 GITHUB
               </label>
 
               {githubVerified ? (
-                <div className="w-full px-5 py-3.5 rounded bg-[#11111b] border border-[#a6e3a1]/60 text-[#a6e3a1] font-mono text-xs flex items-center justify-between">
+                <div className="w-full px-5 py-3.5 rounded bg-eva-crust border border-eva-lime/60 text-eva-lime font-mono text-xs flex items-center justify-between">
                   <span>Cyberbee-pro</span>
-                  <span className="text-[11px] font-semibold tracking-wider text-[#a6e3a1]">
+                  <span className="text-[11px] font-semibold tracking-wider text-eva-lime">
                     ✓ VERIFIED
                   </span>
                 </div>
               ) : (
-                <a
+                <LiquidButton
                   href="/api/auth/github"
-                  className="cursor-target w-full py-3.5 px-5 rounded bg-[#11111b] hover:bg-[#1e1e2e] text-[#cdd6f4] border border-[#45475a] hover:border-[#a6e3a1] font-mono text-xs tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all"
+                  variant="terminal"
                 >
                   <svg
                     className="w-4 h-4 fill-current"
@@ -195,7 +195,7 @@ export default function LoginClient({
                     />
                   </svg>
                   <span>Authenticate GitHub</span>
-                </a>
+                </LiquidButton>
               )}
             </div>
 
@@ -203,7 +203,7 @@ export default function LoginClient({
             <div className="space-y-2 w-full">
               <label
                 htmlFor="terminal-password"
-                className="block font-mono text-xs tracking-wider text-[#a6adc8] uppercase"
+                className="block font-mono text-xs tracking-wider text-eva-text-muted uppercase"
               >
                 PASSWORD
               </label>
@@ -215,7 +215,7 @@ export default function LoginClient({
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={!githubVerified || isSubmitting}
                 placeholder={githubVerified ? "/@********(<3)" : "Authenticate GitHub first"}
-                className="cursor-target w-full px-5 py-3.5 rounded bg-[#11111b] border border-[#45475a] focus:border-[#a6e3a1] text-[#cdd6f4] placeholder-[#585b70] font-mono text-sm tracking-widest outline-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="cursor-target w-full px-5 py-3.5 rounded bg-eva-crust border border-eva-surface-border focus:border-eva-lime text-eva-text placeholder-eva-text-muted/50 font-mono text-sm tracking-widest outline-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -227,10 +227,10 @@ export default function LoginClient({
                   doneLabel="ACCESS GRANTED"
                   errorLabel="AUTH REJECTED"
                   onConfirm={handlePasswordSubmit}
-                  trackColor="#313244"
-                  handleColor="#a6e3a1"
-                  successColor="#a6e3a1"
-                  dangerColor="#f38ba8"
+                  trackColor="#242538"
+                  handleColor="#b0dd09"
+                  successColor="#b0dd09"
+                  dangerColor="#ff5577"
                   width="100%"
                   height={52}
                   radius={10}
@@ -242,7 +242,7 @@ export default function LoginClient({
 
             {/* Secondary Action: External Portfolio Link */}
             <div className="pt-2 w-full">
-              <a
+              <LiquidButton
                 href={
                   portfolioUrl.startsWith("http://") || portfolioUrl.startsWith("https://")
                     ? portfolioUrl
@@ -250,11 +250,11 @@ export default function LoginClient({
                 }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="cursor-target w-full py-3.5 px-5 rounded bg-[#11111b] hover:bg-[#1e1e2e] text-[#cdd6f4] border border-[#45475a] hover:border-[#a6e3a1] font-mono text-xs tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all"
+                variant="terminal"
               >
                 <span aria-hidden="true">&larr;</span>
                 <span>Go to portfolio</span>
-              </a>
+              </LiquidButton>
             </div>
           </div>
         </div>

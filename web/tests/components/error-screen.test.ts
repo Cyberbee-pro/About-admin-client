@@ -228,6 +228,35 @@ describe("Evangelion Error Screen & Dynamic Routes", () => {
       assert.ok(html.includes("/Errs/50X/img_500.svg"), "HTML must include 500 background");
     });
 
+    test("buttons implement liquid-fill green animation without active:scale-95", () => {
+      const html = renderToString(
+        React.createElement(ErrorScreen, {
+          code: 500,
+          reset: () => {},
+        })
+      );
+
+      // Verify removal of scale-down press effects
+      assert.ok(!html.includes("active:scale-95"), "Buttons must NOT use active:scale-95");
+
+      // Verify TargetCursor integration class
+      assert.ok(html.includes("cursor-target"), "Buttons must have cursor-target class for TargetCursor");
+
+      // Verify liquid-fill green transition layers
+      assert.ok(
+        html.includes("overflow-hidden"),
+        "Buttons must have overflow-hidden container for liquid-fill effect"
+      );
+      assert.ok(
+        html.includes("translate-y-full") && html.includes("group-hover:translate-y-0"),
+        "Buttons must contain liquid-fill slide animation (translate-y-full -> translate-y-0)"
+      );
+      assert.ok(
+        html.includes("bg-eva-lime") || html.includes("bg-[#B0DD09]"),
+        "Liquid-fill element must use vibrant Evangelion lime green (bg-eva-lime)"
+      );
+    });
+
     test("ErrorBoundary sanitizes error message and shows generic fallback without digest", () => {
       const originalConsoleError = console.error;
       console.error = () => {};

@@ -1,36 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #12121b; /* Deepened for maximum contrast */
-  --foreground: #ffffff; /* Pure crisp white for peak readability */
+  --background: #12121b;
+  --foreground: #ffffff;
 
-  /* Enhanced High-Contrast Catppuccin Mocha Palette */
-  --ctp-rosewater: #f5e0dc;
-  --ctp-flamingo: #f2cdcd;
-  --ctp-pink: #f5c2e7;
-  --ctp-mauve: #d0a9ff; /* Brighter, punchier mauve */
-  --ctp-red: #ff5577;   /* Higher contrast vibrant red */
-  --ctp-maroon: #eba0ac;
-  --ctp-peach: #ff9e64;
-  --ctp-yellow: #f9e2af;
-  --ctp-green: #39ff14; /* High-contrast neon terminal green */
-  --ctp-teal: #94e2d5;
-  --ctp-sky: #89dceb;
-  --ctp-sapphire: #74c7ec;
-  --ctp-blue: #89b4fa;
-  --ctp-lavender: #b4befe;
-  --ctp-text: #f8f9ff;   /* Brightened foreground text */
-  --ctp-subtext1: #d0d3e0;
-  --ctp-subtext0: #a9adc1;
-  --ctp-overlay2: #9399b2;
-  --ctp-overlay1: #7f849c;
-  --ctp-overlay0: #6c7086;
-  --ctp-surface2: #585b70;
-  --ctp-surface1: #45475a;
-  --ctp-surface0: #2a2b3d; /* Richer surface depth */
-  --ctp-base: #12121b;     /* Deepened dark base */
-  --ctp-mantle: #0d0d12;   /* Darker framing mantle */
-  --ctp-crust: #07070a;
+  /* Pure Dedicated Evangelion Unit-01 & NERV Palette */
+  --eva-lime: #b0dd09;          /* Neon lime-green (Eva UI / hazard stripes) */
+  --eva-lime-bright: #cbf516;   /* High-energy lime highlight */
+  --eva-teal: #6bffb6;          /* Secondary cyan/mint terminal accent */
+  --eva-purple: #68428d;        /* Classic Eva-01 primary armor deep purple */
+  --eva-violet: #77439c;        /* Vibrant armor violet */
+  --eva-lavender: #9d7bb0;      /* Soft violet highlight */
+  --eva-orange: #fb850f;        /* NERV UI amber-orange */
+  --eva-amber: #fa850d;         /* NERV warning hazard amber */
+  --eva-red: #ff5577;           /* Alert / NERV emergency red */
+  --eva-charcoal: #181825;      /* Terminal panel surface charcoal */
+  --eva-black: #12121b;         /* Deep terminal dark background */
+  --eva-mantle: #0d0d14;        /* Dark framing mantle */
+  --eva-crust: #07070a;         /* Deepest backdrop crust */
+  --eva-surface: #242538;       /* Mid-depth container surface */
+  --eva-surface-border: #3b3d54; /* Surface border stroke */
+  --eva-text: #f8f9ff;          /* Crisp bright foreground text */
+  --eva-text-muted: #a9adc4;    /* Muted terminal subtext */
 }
 
 @theme inline {
@@ -39,51 +30,50 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-ctp-rosewater: var(--ctp-rosewater);
-  --color-ctp-flamingo: var(--ctp-flamingo);
-  --color-ctp-pink: var(--ctp-pink);
-  --color-ctp-mauve: var(--ctp-mauve);
-  --color-ctp-red: var(--ctp-red);
-  --color-ctp-maroon: var(--ctp-maroon);
-  --color-ctp-peach: var(--ctp-peach);
-  --color-ctp-yellow: var(--ctp-yellow);
-  --color-ctp-green: var(--ctp-green);
-  --color-ctp-teal: var(--ctp-teal);
-  --color-ctp-sky: var(--ctp-sky);
-  --color-ctp-sapphire: var(--ctp-sapphire);
-  --color-ctp-blue: var(--ctp-blue);
-  --color-ctp-lavender: var(--ctp-lavender);
-  --color-ctp-text: var(--ctp-text);
-  --color-ctp-subtext1: var(--ctp-subtext1);
-  --color-ctp-subtext0: var(--ctp-subtext0);
-  --color-ctp-overlay2: var(--ctp-overlay2);
-  --color-ctp-overlay1: var(--ctp-overlay1);
-  --color-ctp-overlay0: var(--ctp-overlay0);
-  --color-ctp-surface2: var(--ctp-surface2);
-  --color-ctp-surface1: var(--ctp-surface1);
-  --color-ctp-surface0: var(--ctp-surface0);
-  --color-ctp-base: var(--ctp-base);
-  --color-ctp-mantle: var(--ctp-mantle);
-  --color-ctp-crust: var(--ctp-crust);
+  --color-eva-lime: var(--eva-lime);
+  --color-eva-lime-bright: var(--eva-lime-bright);
+  --color-eva-teal: var(--eva-teal);
+  --color-eva-purple: var(--eva-purple);
+  --color-eva-violet: var(--eva-violet);
+  --color-eva-lavender: var(--eva-lavender);
+  --color-eva-orange: var(--eva-orange);
+  --color-eva-amber: var(--eva-amber);
+  --color-eva-red: var(--eva-red);
+  --color-eva-charcoal: var(--eva-charcoal);
+  --color-eva-black: var(--eva-black);
+  --color-eva-mantle: var(--eva-mantle);
+  --color-eva-crust: var(--eva-crust);
+  --color-eva-surface: var(--eva-surface);
+  --color-eva-surface-border: var(--eva-surface-border);
+  --color-eva-text: var(--eva-text);
+  --color-eva-text-muted: var(--eva-text-muted);
 }
 
 body {
-  background: var(--ctp-base);
-  color: var(--ctp-text);
+  background: var(--eva-black);
+  color: var(--eva-text);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-/* Custom cyberpunk terminal scanline and intensified glow effects */
-.cyber-glow-mauve {
-  box-shadow: 0 0 20px rgba(208, 169, 255, 0.35), inset 0 0 15px rgba(208, 169, 255, 0.15);
+/* Evangelion & Cyberpunk Terminal Glow Effects */
+.cyber-glow-mauve,
+.eva-glow-purple {
+  box-shadow: 0 0 20px rgba(104, 66, 141, 0.45), inset 0 0 15px rgba(104, 66, 141, 0.2);
 }
 
-.cyber-glow-green {
-  box-shadow: 0 0 20px rgba(57, 255, 20, 0.35), inset 0 0 15px rgba(57, 255, 20, 0.15);
+.cyber-glow-green,
+.eva-glow-lime {
+  box-shadow: 0 0 20px rgba(176, 221, 9, 0.4), inset 0 0 15px rgba(176, 221, 9, 0.2);
 }
 
-.cyber-glow-red {
-  box-shadow: 0 0 20px rgba(255, 85, 119, 0.35), inset 0 0 15px rgba(255, 85, 119, 0.15);
+.cyber-glow-red,
+.eva-glow-red {
+  box-shadow: 0 0 20px rgba(255, 85, 119, 0.4), inset 0 0 15px rgba(255, 85, 119, 0.2);
+}
+
+.cyber-glow-amber,
+.eva-glow-orange {
+  box-shadow: 0 0 20px rgba(251, 133, 15, 0.4), inset 0 0 15px rgba(251, 133, 15, 0.2);
 }
 
 /* Explicit Exo 2 font utility class with important override */
