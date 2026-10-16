@@ -79,3 +79,14 @@ export const getGitHubClientSecret = (): string => getRequiredEnv("GITHUB_CLIENT
 export const getAdminPassword = (): string => getRequiredEnv("ADMIN_PASSWORD");
 export const getAdminSessionSecret = (): string => getRequiredEnv("ADMIN_SESSION_SECRET");
 export const getPortfolioUrl = (): string => getRequiredEnv("NEXT_PUBLIC_PORTFOLIO_URL");
+
+// Optional application environment variable accessors
+export const getGitHubRedirectUri = (): string | undefined => {
+  const val = process.env.GITHUB_REDIRECT_URI;
+  return val && val.trim() !== "" ? val.trim() : undefined;
+};
+
+export const getAppUrlEnv = (): string | undefined => {
+  const val = process.env.NEXT_PUBLIC_APP_URL;
+  return val && val.trim() !== "" ? val.trim() : undefined;
+};

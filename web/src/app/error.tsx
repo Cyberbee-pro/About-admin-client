@@ -18,7 +18,11 @@ export default function ErrorBoundary({
   return (
     <ErrorScreen
       code={500}
-      description={error.message || "something broke in the server"}
+      description={
+        error.digest
+          ? `Error reference: ${error.digest}`
+          : "something broke in the server"
+      }
       reset={reset}
     />
   );

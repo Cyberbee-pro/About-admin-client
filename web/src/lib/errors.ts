@@ -1,12 +1,15 @@
-export type SupportedErrorCode =
-  | 400
-  | 401
-  | 403
-  | 404
-  | 500
-  | 502
-  | 503
-  | 504;
+export const SUPPORTED_ERROR_CODES = [
+  400,
+  401,
+  403,
+  404,
+  500,
+  502,
+  503,
+  504,
+] as const;
+
+export type SupportedErrorCode = (typeof SUPPORTED_ERROR_CODES)[number];
 
 export interface ErrorDefinition {
   title: string;
@@ -17,7 +20,7 @@ export interface ErrorDefinition {
 /**
  * Standard error definitions matching the Evangelion-styled error specifications.
  */
-export const ERROR_DEFINITIONS: Record<number, ErrorDefinition> = {
+export const ERROR_DEFINITIONS: Record<SupportedErrorCode, ErrorDefinition> = {
   400: {
     title: "Bad Request",
     description: "The server cannot process the request due to a client error",
@@ -62,20 +65,19 @@ export const ERROR_DEFINITIONS: Record<number, ErrorDefinition> = {
 };
 
 /**
- * Dynamically resolves the background image path for 40X or 50X errors.
+ * Dynamically resolves the background image path for error codes against an explicit whitelist.
+ * If an unlisted or malformed code is passed, safely falls back to a default asset
+ * (/Errs/40X/img_404.svg for 4xx/unknown, /Errs/50X/img_500.svg for 5xx) to prevent arbitrary path injection.
  */
 export function resolveErrorBackground(code: number | string): string {
   const numericCode = typeof code === "string" ? parseInt(code, 10) : code;
   if (!Number.isNaN(numericCode) && numericCode in ERROR_DEFINITIONS) {
-    return ERROR_DEFINITIONS[numericCode].bgImage;
+    return ERROR_DEFINITIONS[numericCode as SupportedErrorCode].bgImage;
   }
 
-  const codeStr = String(code);
-  if (codeStr.startsWith("4")) {
-    return `/Errs/40X/img_${codeStr}.svg`;
-  }
+  const codeStr = String(code).trim();
   if (codeStr.startsWith("5")) {
-    return `/Errs/50X/img_${codeStr}.svg`;
+    return "/Errs/50X/img_500.svg";
   }
 
   return "/Errs/40X/img_404.svg";
@@ -96,9 +98,10 @@ export function getErrorDetails(
   bgImage: string;
 } {
   const numericCode = typeof code === "string" ? parseInt(code, 10) : code;
-  const def = !Number.isNaN(numericCode)
-    ? ERROR_DEFINITIONS[numericCode]
-    : undefined;
+  const def =
+    !Number.isNaN(numericCode) && numericCode in ERROR_DEFINITIONS
+      ? ERROR_DEFINITIONS[numericCode as SupportedErrorCode]
+      : undefined;
 
   const title = customTitle || def?.title || `Error ${code}`;
   const description =

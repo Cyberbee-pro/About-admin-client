@@ -16,6 +16,8 @@ import {
   getErrorDetails,
 } from "@/lib/errors";
 import { generateStaticParams } from "@/app/error/[code]/page";
+import ErrorBoundary from "@/app/error";
+import NotFound from "@/app/not-found";
 
 describe("Evangelion Error Screen & Dynamic Routes", () => {
   const publicDir = path.resolve(__dirname, "../../public");
@@ -83,27 +85,32 @@ describe("Evangelion Error Screen & Dynamic Routes", () => {
   });
 
   describe("resolveErrorBackground Resolver", () => {
-    test("resolves 40X error codes to /Errs/40X/img_[code].svg", () => {
+    test("resolves whitelisted 40X error codes to /Errs/40X/img_[code].svg", () => {
       assert.equal(resolveErrorBackground(400), "/Errs/40X/img_400.svg");
       assert.equal(resolveErrorBackground(401), "/Errs/40X/img_401.svg");
       assert.equal(resolveErrorBackground(403), "/Errs/40X/img_403.svg");
       assert.equal(resolveErrorBackground(404), "/Errs/40X/img_404.svg");
       assert.equal(resolveErrorBackground("404"), "/Errs/40X/img_404.svg");
-      assert.equal(resolveErrorBackground("418"), "/Errs/40X/img_418.svg");
     });
 
-    test("resolves 50X error codes to /Errs/50X/img_[code].svg", () => {
+    test("resolves whitelisted 50X error codes to /Errs/50X/img_[code].svg", () => {
       assert.equal(resolveErrorBackground(500), "/Errs/50X/img_500.svg");
       assert.equal(resolveErrorBackground(502), "/Errs/50X/img_502.svg");
       assert.equal(resolveErrorBackground(503), "/Errs/50X/img_503.svg");
       assert.equal(resolveErrorBackground(504), "/Errs/50X/img_504.svg");
       assert.equal(resolveErrorBackground("500"), "/Errs/50X/img_500.svg");
-      assert.equal(resolveErrorBackground("505"), "/Errs/50X/img_505.svg");
     });
 
-    test("falls back safely to /Errs/40X/img_404.svg for unclassified codes", () => {
+    test("falls back safely to /Errs/40X/img_404.svg for unlisted 4xx or unclassified codes", () => {
+      assert.equal(resolveErrorBackground("418"), "/Errs/40X/img_404.svg");
       assert.equal(resolveErrorBackground(999), "/Errs/40X/img_404.svg");
       assert.equal(resolveErrorBackground("unknown"), "/Errs/40X/img_404.svg");
+      assert.equal(resolveErrorBackground("404'url(evil)"), "/Errs/40X/img_404.svg");
+    });
+
+    test("falls back safely to /Errs/50X/img_500.svg for unlisted 5xx codes", () => {
+      assert.equal(resolveErrorBackground("505"), "/Errs/50X/img_500.svg");
+      assert.equal(resolveErrorBackground(501), "/Errs/50X/img_500.svg");
     });
   });
 
@@ -219,6 +226,57 @@ describe("Evangelion Error Screen & Dynamic Routes", () => {
       assert.ok(html.includes("Internal Server Error"), "HTML must render Internal Server Error");
       assert.ok(html.includes("Retry Operation"), "HTML must render Retry Operation button");
       assert.ok(html.includes("/Errs/50X/img_500.svg"), "HTML must include 500 background");
+    });
+
+    test("ErrorBoundary sanitizes error message and shows generic fallback without digest", () => {
+      const originalConsoleError = console.error;
+      console.error = () => {};
+      try {
+        const sensitiveError = new Error("FATAL: database password exposed in query");
+        const html = renderToString(
+          React.createElement(ErrorBoundary, {
+            error: sensitiveError,
+            reset: () => {},
+          })
+        );
+
+        assert.ok(!html.includes("FATAL: database password exposed"), "HTML must NOT leak error.message");
+        assert.ok(html.includes("something broke in the server"), "HTML must render generic fallback");
+        assert.ok(html.includes("Err 500 :"), "HTML must render Err 500 :");
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
+    test("ErrorBoundary displays correlation reference when error.digest is provided", () => {
+      const originalConsoleError = console.error;
+      console.error = () => {};
+      try {
+        const errorWithDigest = Object.assign(new Error("Internal DB connection dropped"), {
+          digest: "CORRELATION_ID_XYZ123",
+        });
+        const html = renderToString(
+          React.createElement(ErrorBoundary, {
+            error: errorWithDigest,
+            reset: () => {},
+          })
+        );
+
+        assert.ok(!html.includes("Internal DB connection dropped"), "HTML must NOT leak error.message");
+        assert.ok(html.includes("Error reference: CORRELATION_ID_XYZ123"), "HTML must render digest reference");
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
+    test("NotFound component renders Evangelion 404 layout and assets", () => {
+      const html = renderToString(React.createElement(NotFound));
+
+      assert.ok(html.includes("Err 404 :"), "HTML must render Err 404 :");
+      assert.ok(html.includes("Not Found"), "HTML must render Not Found");
+      assert.ok(html.includes("/Errs/40X/img_404.svg"), "HTML must render 404 background");
+      assert.ok(html.includes("/common/ITZEUL.svg"), "HTML must render ITZEUL circular motif");
+      assert.ok(html.includes("/common/haz_strip.svg"), "HTML must render hazard strip");
     });
   });
 });
