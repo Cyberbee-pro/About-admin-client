@@ -1,8 +1,13 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+import LiquidButton from "@/components/LiquidButton";
+
+const TargetCursor = dynamic(() => import("@/components/designs/TargetCursor"), {
+  ssr: false,
+});
 
 import {
   ERROR_DEFINITIONS,
@@ -81,10 +86,17 @@ export default function ErrorScreen({
 
   return (
     <main
-      className={`relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#12121b] text-white selection:bg-[#B0DD09] selection:text-black ${className}`}
+      className={`relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-eva-black text-eva-text selection:bg-eva-lime selection:text-eva-black ${className}`}
       data-testid="error-screen"
       data-error-code={errorInfo.code}
     >
+      {/* Sci-Fi Crosshair Target Cursor */}
+      <TargetCursor
+        targetSelector=".cursor-target"
+        cursorColor="#B0DD09"
+        cursorColorOnTarget="#ff5577"
+        spinDuration={2}
+      />
       {/* Viewport Full-Cover Background Image */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500 pointer-events-none"
@@ -105,18 +117,18 @@ export default function ErrorScreen({
       <header className="relative z-10 w-full px-6 py-5 sm:px-10 sm:py-6 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <span
-            className="font-exo2 font-bold text-base sm:text-lg md:text-xl text-[#ff5577] select-none leading-none"
+            className="font-exo2 font-bold text-base sm:text-lg md:text-xl text-eva-red select-none leading-none"
             aria-hidden="true"
           >
             &gt;
           </span>
-          <span className="font-exo2 font-semibold text-xs sm:text-sm tracking-[0.25em] text-[#ff5577] uppercase leading-none">
+          <span className="font-exo2 font-semibold text-xs sm:text-sm tracking-[0.25em] text-eva-red uppercase leading-none">
             {`NERV SYSTEM ALERT // CODE: ${errorInfo.code}`}
           </span>
         </div>
-        <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-neutral-400">
+        <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-eva-text-muted">
           <span>MAGI_SYS: OFF-NOMINAL</span>
-          <span className="text-neutral-600">|</span>
+          <span className="text-eva-surface-border">|</span>
           <span>PROTOCOL_ERR</span>
         </div>
       </header>
@@ -157,7 +169,7 @@ export default function ErrorScreen({
 
             {/* Line 3: Descriptive Message */}
             <p
-              className="font-exo2 text-base sm:text-lg md:text-xl lg:text-2xl text-neutral-200 mt-2 sm:mt-4 leading-relaxed max-w-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+              className="font-exo2 text-base sm:text-lg md:text-xl lg:text-2xl text-eva-text-muted mt-2 sm:mt-4 leading-relaxed max-w-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
               data-testid="error-desc-line"
             >
               {errorInfo.description}
@@ -166,24 +178,24 @@ export default function ErrorScreen({
             {/* Interactive Actions / Navigation */}
             <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
               {reset && (
-                <button
+                <LiquidButton
                   type="button"
                   onClick={reset}
-                  className="font-exo2 font-semibold text-xs sm:text-sm tracking-[0.2em] uppercase px-6 py-3 rounded-none bg-[#B0DD09] text-black hover:bg-[#cbf516] active:scale-95 transition-all shadow-[0_0_15px_rgba(176,221,9,0.4)] cursor-pointer"
+                  variant="primary"
                   data-testid="error-retry-btn"
                 >
                   Retry Operation
-                </button>
+                </LiquidButton>
               )}
 
               {showHomeButton && (
-                <Link
+                <LiquidButton
                   href={homeHref}
-                  className="font-exo2 font-semibold text-xs sm:text-sm tracking-[0.2em] uppercase px-6 py-3 rounded-none border border-white/40 hover:border-[#B0DD09] text-white hover:text-[#B0DD09] bg-black/40 hover:bg-black/70 active:scale-95 transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                  variant="secondary"
                   data-testid="error-home-link"
                 >
                   {homeText}
-                </Link>
+                </LiquidButton>
               )}
             </div>
 

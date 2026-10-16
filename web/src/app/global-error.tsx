@@ -17,7 +17,7 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="bg-[#12121b] text-white">
+      <body className="bg-eva-black text-eva-text">
         <ErrorScreen
           code={500}
           description={
