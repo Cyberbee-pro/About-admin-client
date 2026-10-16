@@ -1,0 +1,35 @@
+<svg width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g clip-path="url(#clip0_21_521)">
+<rect width="14.8636" height="5.9559" transform="matrix(0.87462 -0.48481 0 1 0 7.20602)" fill="#6BFFB6"/>
+<g clip-path="url(#clip1_21_521)">
+<g id="Repeat group 1_inner" data-figma-trr="l6u0.45-0f">
+<path d="M2.35327 3.31302L0.958728 1.67898L-0.435814 0.0449486L-0.78445 0.525329L2.00464 3.7934L2.35327 3.31302Z" fill="#FA850D"/>
+</g>
+<use xlink:href="#Repeat%20group%201_inner" transform="translate(0 1.8)"/>
+<use xlink:href="#Repeat%20group%201_inner" transform="translate(0 3.6)"/>
+<use xlink:href="#Repeat%20group%201_inner" transform="translate(0 5.4)"/>
+<use xlink:href="#Repeat%20group%201_inner" transform="translate(0 7.2)"/>
+<use xlink:href="#Repeat%20group%201_inner" transform="translate(0 9)"/>
+</g>
+<g clip-path="url(#clip2_21_521)">
+<g id="Repeat group 1_2_inner" data-figma-trr="l6u0.45-0f">
+</g>
+<use xlink:href="#Repeat%20group%201_2_inner" transform="translate(0 1.8)"/>
+<use xlink:href="#Repeat%20group%201_2_inner" transform="translate(0 3.6)"/>
+<use xlink:href="#Repeat%20group%201_2_inner" transform="translate(0 5.4)"/>
+<use xlink:href="#Repeat%20group%201_2_inner" transform="translate(0 7.2)"/>
+<use xlink:href="#Repeat%20group%201_2_inner" transform="translate(0 9)"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_21_521">
+<rect width="14.8636" height="5.9559" fill="white" transform="matrix(0.87462 -0.48481 0 1 0 7.20602)"/>
+</clipPath>
+<clipPath id="clip1_21_521">
+<rect width="5.09924" height="12.4123" fill="white" transform="matrix(0.78443 -0.0808553 0 1 0 2.00003)"/>
+</clipPath>
+<clipPath id="clip2_21_521">
+<rect width="3.82475" height="10.3132" fill="white" transform="matrix(0.784364 -0.0818881 0 1 10 -1.99997)"/>
+</clipPath>
+</defs>
+</svg>
