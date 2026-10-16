@@ -103,10 +103,15 @@ export default function ErrorScreen({
 
       {/* Top Header / Status Indicator Bar */}
       <header className="relative z-10 w-full px-6 py-5 sm:px-10 sm:py-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#ff5577] animate-pulse shadow-[0_0_8px_#ff5577]" />
-          <span className="font-exo2 font-semibold text-xs sm:text-sm tracking-[0.25em] text-[#ff5577] uppercase">
-            NERV SYSTEM ALERT // CODE: {errorInfo.code}
+        <div className="flex items-center gap-1.5">
+          <span
+            className="font-exo2 font-bold text-base sm:text-lg md:text-xl text-[#ff5577] select-none leading-none"
+            aria-hidden="true"
+          >
+            &gt;
+          </span>
+          <span className="font-exo2 font-semibold text-xs sm:text-sm tracking-[0.25em] text-[#ff5577] uppercase leading-none">
+            {`NERV SYSTEM ALERT // CODE: ${errorInfo.code}`}
           </span>
         </div>
         <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-neutral-400">
@@ -124,7 +129,7 @@ export default function ErrorScreen({
             <Image
               src="/common/ITZEUL.svg"
               alt="ITZEUL Circular Motif"
-              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain select-none drop-shadow-[0_0_20px_rgba(255,133,15,0.45)]"
+              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain select-none"
               width={96}
               height={96}
               priority

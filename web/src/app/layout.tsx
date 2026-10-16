@@ -22,6 +22,11 @@ const exo2 = Exo_2({
 export const metadata: Metadata = {
   title: "Cyberbee Portfolio Manager",
   description: "Cyberbee's portfolio manager admin terminal",
+  icons: {
+    icon: "/common/ITZEUL.svg",
+    shortcut: "/common/ITZEUL.svg",
+    apple: "/common/ITZEUL.svg",
+  },
 };
 
 export default function RootLayout({

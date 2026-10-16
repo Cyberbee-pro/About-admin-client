@@ -193,6 +193,18 @@ describe("Evangelion Error Screen & Dynamic Routes", () => {
       assert.ok(html.includes("/common/haz_strip.svg"), "HTML must include haz_strip.svg");
       // Verify Return to Dashboard link
       assert.ok(html.includes("/dashboard"), "HTML must render return link");
+
+      // Verify header alert format with enlarged > prefix and no pulsing dot or glow
+      assert.ok(
+        html.includes("&gt;</span>") &&
+          html.includes("NERV SYSTEM ALERT // CODE: 400"),
+        "HTML must render header alert with enlarged > prefix"
+      );
+      assert.ok(!html.includes("animate-pulse"), "HTML must not render pulsing dot");
+      assert.ok(
+        !html.includes("drop-shadow-[0_0_20px"),
+        "HTML must not render amber glow on ITZEUL motif"
+      );
     });
 
     test("renders retry button when reset callback is provided", () => {
