@@ -34,7 +34,7 @@ export default function LiquidButton({
   variant = "primary",
   className = "",
   liquidColor = "bg-eva-lime",
-  activeTextColor = "group-hover:text-eva-black group-active:text-eva-black",
+  activeTextColor = "group-hover:text-eva-black group-focus-visible:text-eva-black group-active:text-eva-black",
   disabled = false,
   target,
   rel,
@@ -43,7 +43,7 @@ export default function LiquidButton({
   ...rest
 }: LiquidButtonProps) {
   const baseClasses =
-    "cursor-target group relative inline-flex items-center justify-center overflow-hidden transition-colors duration-300 select-none";
+    "cursor-target group relative inline-flex items-center justify-center overflow-hidden transition-colors duration-300 select-none outline-none focus-visible:ring-2 focus-visible:ring-eva-lime focus-visible:ring-offset-2 focus-visible:ring-offset-eva-black";
   const variantClass = VARIANT_STYLES[variant] || VARIANT_STYLES.primary;
   const disabledClasses = disabled
     ? "opacity-40 cursor-not-allowed pointer-events-none"
@@ -66,8 +66,29 @@ export default function LiquidButton({
     </>
   );
 
-  // External, api route, or new window links
+  // Link elements (anchors or Next.js Link)
   if (href) {
+    // When disabled, completely nullify navigation, omit href, set tabIndex -1 and aria-disabled
+    if (disabled) {
+      return (
+        <a
+          role="link"
+          aria-disabled="true"
+          tabIndex={-1}
+          className={combinedClassName}
+          data-testid={dataTestId}
+          aria-label={rest["aria-label"]}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          {...(rest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+        >
+          {content}
+        </a>
+      );
+    }
+
     const isExternal =
       href.startsWith("http://") ||
       href.startsWith("https://") ||
@@ -109,6 +130,7 @@ export default function LiquidButton({
     <button
       type={type}
       disabled={disabled}
+      aria-disabled={disabled ? "true" : undefined}
       className={combinedClassName}
       data-testid={dataTestId}
       onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}

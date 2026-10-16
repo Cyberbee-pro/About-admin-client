@@ -15,7 +15,7 @@ describe("LiquidButton Component", () => {
     assert.ok(html.includes("Click Me"), "Must render children text");
   });
 
-  test("implements liquid-fill overlay and TargetCursor integration classes", () => {
+  test("implements liquid-fill overlay, keyboard focus accessibility, and TargetCursor integration classes", () => {
     const html = renderToString(
       React.createElement(LiquidButton, { variant: "primary" }, "Liquid Action")
     );
@@ -29,10 +29,41 @@ describe("LiquidButton Component", () => {
       html.includes("translate-y-full") && html.includes("group-hover:translate-y-0"),
       "Must contain translate-y-full and group-hover:translate-y-0 for liquid sliding animation"
     );
+    assert.ok(
+      html.includes("group-focus-visible:translate-y-0"),
+      "Must support keyboard focus animation with group-focus-visible:translate-y-0"
+    );
+    assert.ok(
+      html.includes("group-focus-visible:text-eva-black"),
+      "Text must transition to legible black under keyboard focus (group-focus-visible:text-eva-black)"
+    );
+    assert.ok(
+      html.includes("focus-visible:ring-eva-lime"),
+      "Must include focus-visible focus ring for keyboard navigation"
+    );
     assert.ok(html.includes("bg-eva-lime"), "Must use bg-eva-lime for liquid fill layer");
 
     // Verify removal of legacy scale press effects
     assert.ok(!html.includes("active:scale-95"), "Must NOT include active:scale-95");
+  });
+
+  test("accepts fully customizable liquidColor and activeTextColor parameters", () => {
+    const customHtml = renderToString(
+      React.createElement(
+        LiquidButton,
+        {
+          liquidColor: "bg-eva-orange",
+          activeTextColor: "group-hover:text-white group-focus-visible:text-white",
+        },
+        "NERV Alert"
+      )
+    );
+
+    assert.ok(customHtml.includes("bg-eva-orange"), "Must apply custom liquidColor");
+    assert.ok(
+      customHtml.includes("group-hover:text-white group-focus-visible:text-white"),
+      "Must apply custom activeTextColor"
+    );
   });
 
   test("renders external URLs and /api/ paths as an anchor <a> element", () => {
@@ -76,6 +107,33 @@ describe("LiquidButton Component", () => {
     assert.ok(html.includes("Return to Dashboard"), "Must contain label");
   });
 
+  test("disables navigation when href and disabled are both provided", () => {
+    const disabledLinkHtml = renderToString(
+      React.createElement(
+        LiquidButton,
+        { href: "/dashboard", disabled: true, variant: "secondary" },
+        "Disabled Link"
+      )
+    );
+
+    assert.ok(
+      !disabledLinkHtml.includes('href="/dashboard"'),
+      "Must omit href attribute when disabled to prevent navigation"
+    );
+    assert.ok(
+      disabledLinkHtml.includes('aria-disabled="true"'),
+      "Must specify aria-disabled='true'"
+    );
+    assert.ok(
+      disabledLinkHtml.includes('tabindex="-1"'),
+      "Must set tabindex='-1' to remove from keyboard tab order"
+    );
+    assert.ok(
+      disabledLinkHtml.includes("pointer-events-none"),
+      "Must apply pointer-events-none to prevent click events"
+    );
+  });
+
   test("renders terminal variant styling for login page buttons", () => {
     const html = renderToString(
       React.createElement(
@@ -91,7 +149,7 @@ describe("LiquidButton Component", () => {
     assert.ok(html.includes("font-mono"), "Terminal variant must use font-mono");
   });
 
-  test("handles disabled state cleanly", () => {
+  test("handles disabled state cleanly on button elements", () => {
     const html = renderToString(
       React.createElement(
         LiquidButton,
@@ -101,6 +159,7 @@ describe("LiquidButton Component", () => {
     );
 
     assert.ok(html.includes("disabled"), "Must include disabled attribute on button");
+    assert.ok(html.includes('aria-disabled="true"'), "Must include aria-disabled attribute");
     assert.ok(html.includes("cursor-not-allowed"), "Must include cursor-not-allowed");
     assert.ok(html.includes("pointer-events-none"), "Must disable pointer events");
   });
