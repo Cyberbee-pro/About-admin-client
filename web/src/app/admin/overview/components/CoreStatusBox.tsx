@@ -49,6 +49,29 @@ export function IndicatorHaz({ isHealthy }: { isHealthy: boolean }) {
   );
 }
 
+export function HexNode({
+  cx,
+  cy,
+  r = 2.2,
+}: {
+  cx: number;
+  cy: number;
+  r?: number;
+}) {
+  const dx = r * 0.866;
+  const dy = r * 0.5;
+  const points = [
+    `${cx.toFixed(2)},${(cy - r).toFixed(2)}`,
+    `${(cx + dx).toFixed(2)},${(cy - dy).toFixed(2)}`,
+    `${(cx + dx).toFixed(2)},${(cy + dy).toFixed(2)}`,
+    `${cx.toFixed(2)},${(cy + r).toFixed(2)}`,
+    `${(cx - dx).toFixed(2)},${(cy + dy).toFixed(2)}`,
+    `${(cx - dx).toFixed(2)},${(cy - dy).toFixed(2)}`,
+  ].join(" ");
+
+  return <polygon points={points} fill="var(--eva-orange)" />;
+}
+
 export function CoreStatusBox({
   initialHealth,
   pollIntervalMs = 40000, // 40 seconds polling
@@ -124,6 +147,12 @@ export function CoreStatusBox({
             d="M45.7736 0V39.6278L16.4204 55.178V60.6958V64.2071V73.7379M8.4602 91.2945H0.5V136.942H32.8383V155M71.1468 155V114.871H16.4204V109.854V106.343V87.2816V83.2686V73.7379M16.4204 73.7379H100.5"
             stroke="var(--eva-orange)"
           />
+
+          {/* Hexagon Terminal Caps at Open Circuit Endpoints */}
+          <HexNode cx={45.7736} cy={0} r={2.2} />
+          <HexNode cx={32.8383} cy={155} r={2.2} />
+          <HexNode cx={71.1468} cy={155} r={2.2} />
+          <HexNode cx={100.5} cy={73.7379} r={2.2} />
 
           {/* Top Ticks */}
           <rect

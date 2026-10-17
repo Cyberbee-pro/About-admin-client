@@ -174,6 +174,7 @@ describe("Admin Components & Overview Modules", () => {
       assert.ok(html.includes("0 0 101 175"), "Must render expanded viewBox for zero bottom clipping");
       assert.ok(html.includes("overflow-visible"), "Must use overflow-visible for breathing room");
       assert.ok(html.includes("bg-transparent"), "Must have transparent background");
+      assert.ok(html.includes("<polygon"), "Must render hexagon terminal caps for open circuit endpoints");
     });
   });
 
