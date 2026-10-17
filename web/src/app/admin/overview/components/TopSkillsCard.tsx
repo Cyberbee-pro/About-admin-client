@@ -1,0 +1,123 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Skill, ApiListResponse } from "@/lib/api/types";
+import { getSkills } from "@/lib/api/skillService";
+
+export interface TopSkillsCardProps {
+  initialSkills?: Skill[];
+}
+
+// Clean fallback component rendering the skill's logoUrl from the DB, 
+// or a typography initial if the URL is missing or fails to load.
+function SkillIcon({ name, logoUrl }: { name: string; logoUrl?: string }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (logoUrl && !imgError) {
+    return (
+      <img
+        src={logoUrl}
+        alt={name}
+        className="w-6 h-6 object-contain shrink-0"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="w-6 h-6 rounded bg-black text-white font-mono text-xs flex items-center justify-center font-bold shrink-0">
+      {name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+export function TopSkillsCard({ initialSkills }: TopSkillsCardProps) {
+  const [skills, setSkills] = useState<Skill[]>(initialSkills || []);
+  const [loading, setLoading] = useState<boolean>(!initialSkills);
+
+  useEffect(() => {
+    if (initialSkills) {
+      setSkills(initialSkills);
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    const fetchSkills = async () => {
+      try {
+        let rawItems: Skill[] = [];
+        if (apiUrl) {
+          const res = await fetch(`${apiUrl}/api/v1/skills`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = (await res.json()) as ApiListResponse<Skill>;
+          rawItems = data.data || [];
+        } else {
+          const serviceRes = await getSkills();
+          rawItems = serviceRes.data || [];
+        }
+
+        if (!isMounted) return;
+        // Sort by weight descending
+        const sorted = rawItems.slice().sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
+        setSkills(sorted);
+      } catch (err) {
+        console.warn("[TopSkillsCard] Failed to fetch skills from API:", err);
+        if (isMounted) setSkills([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchSkills();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialSkills]);
+
+  return (
+    <div className="flex flex-col bg-eva-purple shadow-xl select-none p-5 h-[280px]">
+      {/* Header */}
+      <h3 className="font-exo2 text-white font-normal text-2xl tracking-wide mb-4">
+        Top Skills
+      </h3>
+
+      {/* 2-Column Grid taking exactly the top 6 items via .slice(0, 6).map(...) */}
+      <div className="grid grid-cols-2 gap-3.5 flex-1 items-start">
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-11 bg-eva-orange/70 animate-pulse" />
+          ))
+        ) : skills.length === 0 ? (
+          <div className="col-span-2 text-eva-text-muted text-sm font-mono py-4 text-center">
+            404 : NO SKILLS FOUND 
+          </div>
+        ) : (
+          skills.slice(0, 6).map((skill, index) => (
+            <div
+              key={skill._id || `${skill.name}-${index}`}
+              className="h-11 px-3.5 bg-eva-orange flex items-center justify-between shadow-md"
+            >
+              {/* Left: Skill Icon from DB logoUrl & Name */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <SkillIcon name={skill.name} logoUrl={skill.logoUrl} />
+                <span className="font-exo2 font-normal text-white text-lg truncate tracking-wide">
+                  {skill.name}
+                </span>
+              </div>
+
+              {/* Right: Numeric Weight Badge */}
+              <span className="font-exo2 font-normal text-white text-2xl tracking-tight shrink-0 ml-2">
+                {skill.weight}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default TopSkillsCard;

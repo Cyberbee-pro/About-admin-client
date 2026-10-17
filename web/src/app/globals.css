@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #12121b;
+  --background: #000000;
   --foreground: #ffffff;
 
   /* Pure Dedicated Evangelion Unit-01 & NERV Palette */
-  --eva-lime: #b0dd09;          /* Neon lime-green (Eva UI / hazard stripes) */
-  --eva-lime-bright: #cbf516;   /* High-energy lime highlight */
+  --eva-lime: #52d053;          /* Vibrant terminal lime green (RGB: 82, 208, 83) */
+  --eva-lime-bright: #63eb64;   /* High-energy lime highlight */
   --eva-teal: #6bffb6;          /* Secondary cyan/mint terminal accent */
-  --eva-purple: #68428d;        /* Classic Eva-01 primary armor deep purple */
-  --eva-violet: #77439c;        /* Vibrant armor violet */
+  --eva-purple: #7B47DC;        /* New vibrant Evangelion purple shade (RGB: 123, 71, 220) */
+  --eva-violet: #7B47DC;        /* Fallback compatibility variable pointing to #7B47DC */
   --eva-lavender: #9d7bb0;      /* Soft violet highlight */
-  --eva-orange: #fb850f;        /* NERV UI amber-orange */
+  --eva-orange: #e6770b;        /* NERV UI orange (RGB: 230, 119, 11) */
   --eva-amber: #fa850d;         /* NERV warning hazard amber */
-  --eva-red: #ff5577;           /* Alert / NERV emergency red */
+  --eva-red: #d3290f;           /* Alert / active crimson red (RGB: 211, 41, 15) */
   --eva-charcoal: #181825;      /* Terminal panel surface charcoal */
-  --eva-black: #12121b;         /* Deep terminal dark background */
+  --eva-black: #000000;         /* Pure pitch black background (RGB: 0, 0, 0) */
   --eva-mantle: #0d0d14;        /* Dark framing mantle */
   --eva-crust: #07070a;         /* Deepest backdrop crust */
   --eva-surface: #242538;       /* Mid-depth container surface */
@@ -58,22 +58,22 @@ body {
 /* Evangelion & Cyberpunk Terminal Glow Effects */
 .cyber-glow-mauve,
 .eva-glow-purple {
-  box-shadow: 0 0 20px rgba(104, 66, 141, 0.45), inset 0 0 15px rgba(104, 66, 141, 0.2);
+  box-shadow: 0 0 20px rgba(123, 71, 220, 0.45), inset 0 0 15px rgba(123, 71, 220, 0.2);
 }
 
 .cyber-glow-green,
 .eva-glow-lime {
-  box-shadow: 0 0 20px rgba(176, 221, 9, 0.4), inset 0 0 15px rgba(176, 221, 9, 0.2);
+  box-shadow: 0 0 20px rgba(82, 208, 83, 0.4), inset 0 0 15px rgba(82, 208, 83, 0.2);
 }
 
 .cyber-glow-red,
 .eva-glow-red {
-  box-shadow: 0 0 20px rgba(255, 85, 119, 0.4), inset 0 0 15px rgba(255, 85, 119, 0.2);
+  box-shadow: 0 0 20px rgba(211, 41, 15, 0.4), inset 0 0 15px rgba(211, 41, 15, 0.2);
 }
 
 .cyber-glow-amber,
 .eva-glow-orange {
-  box-shadow: 0 0 20px rgba(251, 133, 15, 0.4), inset 0 0 15px rgba(251, 133, 15, 0.2);
+  box-shadow: 0 0 20px rgba(230, 119, 11, 0.4), inset 0 0 15px rgba(230, 119, 11, 0.2);
 }
 
 /* Explicit Exo 2 font utility class with important override */

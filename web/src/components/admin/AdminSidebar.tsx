@@ -1,0 +1,85 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+
+interface NavItem {
+  name: string;
+  href: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { name: "Overview", href: "/admin/overview" },
+  { name: "config", href: "/admin/config" },
+  { name: "skills and achievements", href: "/admin/skills-achievements" },
+  { name: "Certificates", href: "/admin/certificates" },
+  { name: "experiences", href: "/admin/experiences" },
+  { name: "projects", href: "/admin/projects" },
+  { name: "logs", href: "/admin/logs" },
+];
+
+export function AdminSidebar() {
+  const pathname = usePathname() || "";
+
+  return (
+    <aside
+      aria-label="Admin Navigation"
+      className="w-64 shrink-0 min-h-screen bg-eva-purple border-r border-eva-purple/40 flex flex-col select-none text-white z-20"
+    >
+      {/* 1. Branding Header: ITZEUL.svg strictly clean with ZERO glow and NO yellow accent */}
+      <div className="h-20 px-6 flex items-center gap-3.5">
+        <div className="relative w-9 h-9 shrink-0 flex items-center justify-center">
+          <Image
+            src="/eva dash/ITZEUL.svg"
+            alt="ITZEUL Logo"
+            width={36}
+            height={36}
+            className="w-9 h-9 object-contain"
+            priority
+          />
+        </div>
+        <span className="font-exo2 text-white font-bold text-2xl tracking-wide">
+          Dashboard
+        </span>
+      </div>
+
+      {/* 2. Navigation Tabs */}
+      <nav className="flex-1 py-2 flex flex-col">
+        {NAV_ITEMS.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/admin/overview" && Boolean(pathname && pathname.startsWith(item.href)));
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`w-full px-6 py-3.5 text-base font-exo2 tracking-wide transition-colors flex items-center justify-between ${
+                isActive
+                  ? "bg-eva-red text-white font-semibold"
+                  : "text-white/90 hover:text-white hover:bg-white/10"
+              }`}
+              style={isActive ? { backgroundColor: "var(--eva-red, #d3290f)" } : undefined}
+            >
+              <span>{item.name}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* 3. Footer Motif: Raw eva no back.png with zero badges, corner brackets, or extra padding */}
+      <div className="mt-auto overflow-hidden">
+        <Image
+          src="/eva dash/eva no back.png"
+          alt="EVA Unit-01 Motif"
+          width={256}
+          height={256}
+          className="w-full h-auto object-cover block"
+        />
+      </div>
+    </aside>
+  );
+}
+
+export default AdminSidebar;
