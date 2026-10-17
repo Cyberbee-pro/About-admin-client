@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { gsap } from "gsap";
 import "./TargetCursor.css";
 
@@ -15,6 +16,7 @@ export interface TargetCursorProps {
   parallaxOn?: boolean;
   cursorColor?: string;
   cursorColorOnTarget?: string;
+  excludeRoutes?: string[];
 }
 
 const getContainingBlock = (element: Element | null): Element | null => {
@@ -43,15 +45,37 @@ const getContainingBlockOffset = (block: Element | null): { x: number; y: number
   return { x: rect.left + block.clientLeft, y: rect.top + block.clientTop };
 };
 
+const resolveColor = (color: string): string => {
+  if (typeof window === "undefined" || !color) return color;
+  if (color.startsWith("var(")) {
+    const match = color.match(/var\(\s*([^,\s)]+)(?:,\s*([^)]+))?\)/);
+    if (match) {
+      const varName = match[1];
+      const fallback = match[2];
+      const computed = getComputedStyle(document.documentElement)
+        .getPropertyValue(varName)
+        .trim();
+      return computed || fallback || color;
+    }
+  }
+  return color;
+};
+
+let activeCursorInstances = 0;
+
 export default function TargetCursor({
-  targetSelector = ".cursor-target",
+  targetSelector = ".cursor-target, button, a, [role='button'], input, select, textarea",
   spinDuration = 2,
   hideDefaultCursor = true,
   hoverDuration = 0.2,
   parallaxOn = true,
-  cursorColor = "#ffffff",
-  cursorColorOnTarget,
+  cursorColor = "#52d053",
+  cursorColorOnTarget = "#d3290f",
+  excludeRoutes,
 }: TargetCursorProps) {
+  const pathname = usePathname();
+  const isExcluded = Boolean(excludeRoutes && pathname && excludeRoutes.includes(pathname));
+
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -92,13 +116,16 @@ export default function TargetCursor({
     gsap.to(cursorRef.current, {
       x: x - offsetX,
       y: y - offsetY,
-      duration: 0.1,
-      ease: "power3.out",
+      duration: 0.08,
+      ease: "power2.out",
+      overwrite: "auto",
     });
   }, []);
 
   useEffect(() => {
-    if (isMobile || !cursorRef.current || !mounted) return;
+    if (isExcluded || isMobile || !cursorRef.current || !mounted) return;
+    if (activeCursorInstances > 0) return;
+    activeCursorInstances++;
 
     const strengthObj = activeStrengthRef.current;
     const originalCursor = document.body.style.cursor;
@@ -214,6 +241,11 @@ export default function TargetCursor({
     window.addEventListener("mousedown", mouseDownHandler);
     window.addEventListener("mouseup", mouseUpHandler);
 
+    const resolvedCursorColor = resolveColor(cursorColor);
+    const resolvedColorOnTarget = cursorColorOnTarget
+      ? resolveColor(cursorColorOnTarget)
+      : undefined;
+
     const enterHandler = (e: MouseEvent) => {
       const directTarget = e.target as Element | null;
       const allTargets: Element[] = [];
@@ -227,6 +259,10 @@ export default function TargetCursor({
       const target = allTargets[0] || null;
       if (!target || !cursorRef.current || !cornersRef.current) return;
       if (activeTarget === target) return;
+
+      const rect = target.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0 || rect.width > 900 || rect.height > 600) return;
+
       if (activeTarget) {
         cleanupTarget(activeTarget);
       }
@@ -243,22 +279,21 @@ export default function TargetCursor({
       spinTl.current?.pause();
       gsap.set(cursorRef.current, { rotation: 0 });
 
-      if (cursorColorOnTarget) {
+      if (resolvedColorOnTarget) {
         gsap.to(corners, {
-          borderColor: cursorColorOnTarget,
+          borderColor: resolvedColorOnTarget,
           duration: 0.15,
           ease: "power2.out",
         });
         if (dotRef.current) {
           gsap.to(dotRef.current, {
-            backgroundColor: cursorColorOnTarget,
+            backgroundColor: resolvedColorOnTarget,
             duration: 0.15,
             ease: "power2.out",
           });
         }
       }
 
-      const rect = target.getBoundingClientRect();
       const { borderWidth, cornerSize } = constants;
       const { x: offsetX, y: offsetY } = getOffset();
       const cursorX = Number(gsap.getProperty(cursorRef.current, "x"));
@@ -299,15 +334,15 @@ export default function TargetCursor({
         gsap.set(activeStrengthRef.current, { current: 0, overwrite: true });
         activeTarget = null;
 
-        if (cursorColorOnTarget && cornersRef.current) {
+        if (resolvedColorOnTarget && cornersRef.current) {
           gsap.to(Array.from(cornersRef.current), {
-            borderColor: cursorColor,
+            borderColor: resolvedCursorColor,
             duration: 0.15,
             ease: "power2.out",
           });
           if (dotRef.current) {
             gsap.to(dotRef.current, {
-              backgroundColor: cursorColor,
+              backgroundColor: resolvedCursorColor,
               duration: 0.15,
               ease: "power2.out",
             });
@@ -395,6 +430,7 @@ export default function TargetCursor({
       isActiveRef.current = false;
       targetCornerPositionsRef.current = null;
       strengthObj.current = 0;
+      activeCursorInstances = Math.max(0, activeCursorInstances - 1);
     };
   }, [
     targetSelector,
@@ -408,19 +444,41 @@ export default function TargetCursor({
     cursorColor,
     cursorColorOnTarget,
     mounted,
+    isExcluded,
   ]);
 
-  if (!mounted || isMobile || typeof document === "undefined") {
+  if (isExcluded || !mounted || isMobile || typeof document === "undefined") {
     return null;
   }
 
   return createPortal(
-    <div ref={cursorRef} className="target-cursor-wrapper">
-      <div ref={dotRef} className="target-cursor-dot" style={{ backgroundColor: cursorColor }} />
-      <div className="target-cursor-corner corner-tl" style={{ borderColor: cursorColor }} />
-      <div className="target-cursor-corner corner-tr" style={{ borderColor: cursorColor }} />
-      <div className="target-cursor-corner corner-br" style={{ borderColor: cursorColor }} />
-      <div className="target-cursor-corner corner-bl" style={{ borderColor: cursorColor }} />
+    <div
+      ref={cursorRef}
+      className="target-cursor-wrapper pointer-events-none select-none"
+      style={{ pointerEvents: "none", userSelect: "none" }}
+      aria-hidden="true"
+    >
+      <div
+        ref={dotRef}
+        className="target-cursor-dot pointer-events-none"
+        style={{ backgroundColor: cursorColor, pointerEvents: "none" }}
+      />
+      <div
+        className="target-cursor-corner corner-tl pointer-events-none"
+        style={{ borderColor: cursorColor, pointerEvents: "none" }}
+      />
+      <div
+        className="target-cursor-corner corner-tr pointer-events-none"
+        style={{ borderColor: cursorColor, pointerEvents: "none" }}
+      />
+      <div
+        className="target-cursor-corner corner-br pointer-events-none"
+        style={{ borderColor: cursorColor, pointerEvents: "none" }}
+      />
+      <div
+        className="target-cursor-corner corner-bl pointer-events-none"
+        style={{ borderColor: cursorColor, pointerEvents: "none" }}
+      />
     </div>,
     document.body
   );

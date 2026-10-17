@@ -1,10 +1,18 @@
+.target-cursor-wrapper,
+.target-cursor-dot,
+.target-cursor-corner {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
 .target-cursor-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   width: 0;
   height: 0;
-  pointer-events: none;
+  pointer-events: none !important;
+  user-select: none !important;
   z-index: 2147483647;
   mix-blend-mode: difference;
   transform: translate(-50%, -50%);

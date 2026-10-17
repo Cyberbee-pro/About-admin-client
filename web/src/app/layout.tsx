@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Exo_2 } from "next/font/google";
 import "./globals.css";
+import TargetCursor from "@/components/designs/TargetCursor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${exo2.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-eva-black text-eva-text">
+        <TargetCursor
+          targetSelector=".cursor-target, button, a, [role='button'], input, select, textarea"
+          cursorColor="#52d053"
+          cursorColorOnTarget="#d3290f"
+          spinDuration={2}
+          excludeRoutes={["/login"]}
+        />
         {children}
       </body>
     </html>

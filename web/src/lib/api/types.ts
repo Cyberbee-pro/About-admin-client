@@ -117,8 +117,19 @@ export interface VersionFiles {
   threeDModel?: File | Blob;
 }
 
+export interface PfpItem {
+  url: string;
+  publicId: string;
+  uploadedAt: string;
+}
+
 export interface SiteConfig {
   _id?: string;
+  name?: string;
+  pfpUrl?: string;
+  pfpPublicId?: string;
+  pfpHistory?: PfpItem[];
+  jobTitles?: string[];
   resumeDriveUrl: string;
   statusMessage: string;
   bioSummary: string;
@@ -127,6 +138,36 @@ export interface SiteConfig {
 }
 
 export type UpdateConfigInput = Partial<Omit<SiteConfig, "_id" | "createdAt" | "updatedAt">>;
+
+export interface Skill {
+  _id: string;
+  name: string;
+  logoUrl?: string;
+  featured?: boolean;
+  weight: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateSkillInput {
+  name: string;
+  logoUrl?: string;
+  featured?: boolean;
+  weight?: number;
+}
+
+export type UpdateSkillInput = Partial<CreateSkillInput>;
+
+export interface HealthResponse {
+  status: "healthy" | string;
+  service?: string;
+  version?: string;
+  timestamp?: string;
+  dbStatus: "connected" | "disconnected" | string;
+  memoryUsageMB: number;
+  nodeVersion?: string;
+  env?: string;
+}
 
 export type LogLevel = "INFO" | "WARN" | "ERROR";
 
