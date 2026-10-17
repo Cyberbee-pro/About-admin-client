@@ -196,6 +196,22 @@ describe("Admin Components & Overview Modules", () => {
       assert.ok(html.includes("bg-transparent"), "Must have transparent background");
       assert.ok(html.includes("<polygon"), "Must render hexagon terminal caps for open circuit endpoints");
     });
+
+    test("CoreStatusBox renders pending telemetry state with orange indicators when initialHealth is unprovided", () => {
+      const html = renderToString(React.createElement(CoreStatusBox));
+
+      assert.ok(html.includes("online"), "Must show online label");
+      assert.ok(html.includes("db"), "Must show db label");
+      assert.ok(html.includes("mem"), "Must show mem label");
+      assert.ok(
+        html.includes('transform="matrix(0.87462 -0.48481 0 1 7.5 65.206)" fill="var(--eva-orange)"'),
+        "Online indicator must be orange in pending state"
+      );
+      assert.ok(
+        html.includes('transform="matrix(0.866025 -0.5 0 1 7.5 87.2383)" fill="var(--eva-orange)"'),
+        "DB indicator must be orange in pending state"
+      );
+    });
   });
 
   describe("ProfileDetails Component", () => {
@@ -276,6 +292,40 @@ describe("Admin Components & Overview Modules", () => {
       assert.ok(html.includes("CSS"), "Must render CSS");
       assert.ok(html.includes("99"), "Must render weight level 99");
       assert.ok(html.includes("88"), "Must render weight level 88");
+
+      const tsIndex = html.indexOf("TypeScript");
+      const reactIndex = html.indexOf("React");
+      const cssIndex = html.indexOf("CSS");
+      assert.ok(
+        tsIndex < reactIndex && reactIndex < cssIndex,
+        "Skills must be rendered in descending order by weight (TypeScript 99 > React 88 > CSS 40)"
+      );
+    });
+
+    test("renders only top 6 skills by highest weight when more than 6 are provided", () => {
+      const mockSkills = [
+        { _id: "s1", name: "Skill 10", weight: 10 },
+        { _id: "s2", name: "Skill 90", weight: 90 },
+        { _id: "s3", name: "Skill 80", weight: 80 },
+        { _id: "s4", name: "Skill 70", weight: 70 },
+        { _id: "s5", name: "Skill 60", weight: 60 },
+        { _id: "s6", name: "Skill 50", weight: 50 },
+        { _id: "s7", name: "Skill 40", weight: 40 },
+      ];
+
+      const html = renderToString(
+        React.createElement(TopSkillsCard, {
+          initialSkills: mockSkills,
+        })
+      );
+
+      assert.ok(html.includes("Skill 90"));
+      assert.ok(html.includes("Skill 80"));
+      assert.ok(html.includes("Skill 70"));
+      assert.ok(html.includes("Skill 60"));
+      assert.ok(html.includes("Skill 50"));
+      assert.ok(html.includes("Skill 40"));
+      assert.ok(!html.includes("Skill 10"), "Lowest weight skill (10) must be excluded from top 6");
     });
   });
 });

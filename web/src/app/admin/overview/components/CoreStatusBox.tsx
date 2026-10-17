@@ -76,15 +76,7 @@ export function CoreStatusBox({
   initialHealth,
   pollIntervalMs = 40000, // 40 seconds polling
 }: CoreStatusBoxProps) {
-  const [health, setHealth] = useState<HealthResponse | null>(
-    initialHealth || {
-      status: "healthy",
-      dbStatus: "connected",
-      memoryUsageMB: 28,
-      version: "1.0.0",
-      env: "production",
-    }
-  );
+  const [health, setHealth] = useState<HealthResponse | null>(initialHealth || null);
 
   const fetchTelemetry = async () => {
     try {
@@ -109,17 +101,28 @@ export function CoreStatusBox({
     return () => clearInterval(timer);
   }, [pollIntervalMs]);
 
+  const isPending = health === null;
   const isHealthy = health?.status === "healthy";
   const isConnected = health?.dbStatus === "connected";
-  const memoryMB = health?.memoryUsageMB ?? 28;
+  const memoryMB = health?.memoryUsageMB;
 
   // Dynamic status colors based on theme variables
-  const onlineColor = isHealthy ? "var(--eva-lime)" : "var(--eva-red)";
-  const dbColor = isConnected ? "var(--eva-lime)" : "var(--eva-red)";
+  const onlineColor = isPending
+    ? "var(--eva-orange)"
+    : isHealthy
+    ? "var(--eva-lime)"
+    : "var(--eva-red)";
+  const dbColor = isPending
+    ? "var(--eva-orange)"
+    : isConnected
+    ? "var(--eva-lime)"
+    : "var(--eva-red)";
   
   // Memory threshold color mapping
   const memColor =
-    memoryMB <= 0
+    isPending || memoryMB === undefined
+      ? "var(--eva-orange)"
+      : memoryMB <= 0
       ? "var(--eva-red)"
       : memoryMB <= 30
       ? "var(--eva-lime)"
