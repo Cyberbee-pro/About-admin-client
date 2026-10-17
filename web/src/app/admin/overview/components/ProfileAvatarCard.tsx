@@ -50,7 +50,7 @@ export function ProfileAvatarCard({
   return (
     <div className="relative shrink-0 flex flex-col items-center select-none">
       {/* Orange/Amber Pic Frame Container matching pic_frame.svg */}
-      <div className="relative w-[210px] sm:w-[240px] md:w-[260px] aspect-[187/198] shadow-2xl">
+      <div className="cursor-target cursor-pointer relative w-[210px] sm:w-[240px] md:w-[260px] aspect-[187/198] shadow-2xl">
         {/* Frame SVG Graphic */}
         <Image
           src="/eva dash/pic_frame.svg"

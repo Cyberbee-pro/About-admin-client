@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LiquidButton from "@/components/LiquidButton";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
@@ -52,18 +52,25 @@ export function AdminSidebar() {
             (item.href !== "/admin/overview" && Boolean(pathname && pathname.startsWith(item.href)));
 
           return (
-            <Link
+            <LiquidButton
               key={item.href}
               href={item.href}
-              className={`w-full px-6 py-3.5 text-base font-exo2 tracking-wide transition-colors flex items-center justify-between ${
+              variant="custom"
+              isActive={isActive}
+              butBorder={0}
+              liquidColor="bg-eva-lime"
+              activeColor="bg-eva-red"
+              waveColor="rgba(255, 255, 255, 0.25)"
+              activeTextColor="group-hover:text-eva-black group-focus-visible:text-eva-black group-active:text-eva-black"
+              className={`w-full !justify-start px-6 py-3.5 text-base font-exo2 tracking-wide transition-colors rounded-none ${
                 isActive
-                  ? "bg-eva-red text-white font-semibold"
-                  : "text-white/90 hover:text-white hover:bg-white/10"
+                  ? "text-white font-semibold"
+                  : "text-white/90 bg-transparent"
               }`}
-              style={isActive ? { backgroundColor: "var(--eva-red, #d3290f)" } : undefined}
+              contentClassName="w-full !justify-start"
             >
               <span>{item.name}</span>
-            </Link>
+            </LiquidButton>
           );
         })}
       </nav>

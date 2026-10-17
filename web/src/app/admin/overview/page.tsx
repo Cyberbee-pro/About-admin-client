@@ -5,6 +5,7 @@ import ProfileAvatarCard from "./components/ProfileAvatarCard";
 import ResumePreviewCard from "./components/ResumePreviewCard";
 import TopSkillsCard from "./components/TopSkillsCard";
 import CoreStatusBox from "./components/CoreStatusBox";
+import OverviewBackground from "./components/OverviewBackground";
 
 export const metadata: Metadata = {
   title: "Overview // NERV Admin Console",
@@ -13,9 +14,12 @@ export const metadata: Metadata = {
 
 export default function AdminOverviewPage() {
   return (
-    <div className="flex-1 bg-black text-white flex flex-col justify-between min-h-[calc(100vh-4rem)] select-none">
+    <div className="relative flex-1 bg-black text-white flex flex-col justify-between min-h-[calc(100vh-4rem)] select-none overflow-hidden">
+      {/* WebGL PatternWaves Dynamic Background */}
+      <OverviewBackground />
+
       {/* Main Content Area */}
-      <div className="p-8 md:p-10 space-y-10 max-w-[1600px] w-full mx-auto flex-1">
+      <div className="relative z-10 p-8 md:p-10 space-y-10 max-w-[1600px] w-full mx-auto flex-1">
         {/* Row 1 (Top): Profile Details on Left, Avatar Framed in pic_frame.svg on Right */}
         <section
           aria-label="Pilot Dossier"
@@ -55,7 +59,7 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Hazard Strip Footer matching overview.png */}
-      <div className="w-full h-8 sm:h-10 relative overflow-hidden shrink-0 mt-8">
+      <div className="relative z-10 w-full h-8 sm:h-10 relative overflow-hidden shrink-0 mt-8">
         <div
           className="w-full h-full"
           style={{

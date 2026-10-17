@@ -163,4 +163,58 @@ describe("LiquidButton Component", () => {
     assert.ok(html.includes("cursor-not-allowed"), "Must include cursor-not-allowed");
     assert.ok(html.includes("pointer-events-none"), "Must disable pointer events");
   });
+
+  test("toggles border off when butBorder=0, 'but-border'=0, or butBorder=false", () => {
+    const htmlZero = renderToString(
+      React.createElement(LiquidButton, { variant: "primary", butBorder: 0 }, "No Border Zero")
+    );
+    assert.ok(htmlZero.includes("!border-none"), "Must include !border-none when butBorder is 0");
+    assert.ok(!htmlZero.includes("border-eva-lime"), "Must strip default border class when butBorder is 0");
+
+    const htmlKebabZero = renderToString(
+      React.createElement(LiquidButton, { variant: "terminal", "but-border": 0 }, "No Border Kebab")
+    );
+    assert.ok(htmlKebabZero.includes("!border-none"), "Must include !border-none when but-border is 0");
+    assert.ok(!htmlKebabZero.includes("border-eva-surface-border"), "Must strip border class when but-border is 0");
+
+    const htmlFalse = renderToString(
+      React.createElement(LiquidButton, { variant: "secondary", butBorder: false }, "No Border False")
+    );
+    assert.ok(htmlFalse.includes("!border-none"), "Must include !border-none when butBorder is false");
+  });
+
+  test("supports customizable borders via borderColor or custom butBorder class string", () => {
+    const htmlColor = renderToString(
+      React.createElement(LiquidButton, { variant: "primary", borderColor: "border-eva-red" }, "Red Border")
+    );
+    assert.ok(htmlColor.includes("border-eva-red"), "Must apply custom borderColor");
+
+    const htmlCustom = renderToString(
+      React.createElement(LiquidButton, { variant: "terminal", butBorder: "border-2 border-eva-teal" }, "Teal Border")
+    );
+    assert.ok(htmlCustom.includes("border-2 border-eva-teal"), "Must apply custom butBorder string");
+  });
+
+  test("renders wave animation and activeColor when isActive is true", () => {
+    const htmlActive = renderToString(
+      React.createElement(
+        LiquidButton,
+        {
+          isActive: true,
+          activeColor: "bg-eva-red",
+          waveColor: "#52d053",
+        },
+        "Active Tab"
+      )
+    );
+
+    assert.ok(htmlActive.includes('data-testid="liquid-button-wave-layer"'), "Must render active wave layer");
+    assert.ok(htmlActive.includes('data-testid="liquid-bubbles"'), "Must render rising liquid bubbles in active state");
+    assert.ok(htmlActive.includes("bubbleRise"), "Must include bubbleRise animations");
+    assert.ok(htmlActive.includes("bg-eva-red"), "Must render activeColor fill");
+    assert.ok(htmlActive.includes("liquidWaveSlow"), "Must reference liquidWaveSlow animation");
+    assert.ok(htmlActive.includes("liquidWaveFast"), "Must reference liquidWaveFast animation");
+    assert.ok(htmlActive.includes('fill="#52d053"'), "Must apply custom waveColor fill to SVG wave");
+  });
 });
+

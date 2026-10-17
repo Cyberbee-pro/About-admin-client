@@ -85,7 +85,7 @@ export function ResumePreviewCard({
             target="_blank"
             rel="noopener noreferrer"
             title="Download / View Resume"
-            className="p-1 rounded hover:bg-white/10 transition-colors flex items-center justify-center text-white"
+            className="cursor-target p-1 rounded hover:bg-white/10 transition-colors flex items-center justify-center text-white"
           >
             <Image
               src="/eva dash/download_butt.svg"
@@ -114,7 +114,7 @@ export function ResumePreviewCard({
           href={resumeUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center group cursor-pointer"
+          className="cursor-target flex-1 flex items-center justify-center group cursor-pointer"
         >
           <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center group-hover:scale-105 group-hover:border-white/40 transition-all bg-white/5">
             <Image

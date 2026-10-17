@@ -98,7 +98,7 @@ export function TopSkillsCard({ initialSkills }: TopSkillsCardProps) {
           skills.slice(0, 6).map((skill, index) => (
             <div
               key={skill._id || `${skill.name}-${index}`}
-              className="h-11 px-3.5 bg-eva-orange flex items-center justify-between shadow-md"
+              className="cursor-target h-11 px-3.5 bg-eva-orange flex items-center justify-between shadow-md transition-transform hover:scale-[1.01] cursor-pointer"
             >
               {/* Left: Skill Icon from DB logoUrl & Name */}
               <div className="flex items-center gap-2.5 min-w-0">

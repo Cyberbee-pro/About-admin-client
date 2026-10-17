@@ -80,3 +80,77 @@ body {
 .font-exo2 {
   font-family: var(--font-exo2), sans-serif !important;
 }
+
+/* Liquid Wave Animations for active liquid buttons */
+@keyframes liquidWaveSlow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes liquidWaveFast {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Rising Liquid Bubble Animations */
+@keyframes bubbleRise1 {
+  0% {
+    transform: translateY(110%) translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  75% {
+    opacity: 0.7;
+    transform: translateY(-80%) translateX(3px) scale(1);
+  }
+  100% {
+    transform: translateY(-140%) translateX(-2px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+@keyframes bubbleRise2 {
+  0% {
+    transform: translateY(110%) translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.85;
+  }
+  70% {
+    opacity: 0.75;
+    transform: translateY(-75%) translateX(-3px) scale(0.95);
+  }
+  100% {
+    transform: translateY(-140%) translateX(3px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes bubbleRise3 {
+  0% {
+    transform: translateY(110%) translateX(0) scale(0.65);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.75;
+  }
+  65% {
+    opacity: 0.6;
+    transform: translateY(-60%) translateX(2px) scale(1.05);
+  }
+  100% {
+    transform: translateY(-140%) translateX(-3px) scale(1.2);
+    opacity: 0;
+  }
+}
