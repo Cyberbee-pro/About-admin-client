@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Skill, ApiListResponse } from "@/lib/api/types";
+import { Skill } from "@/lib/api/types";
 import { getSkills } from "@/lib/api/skillService";
 
 export interface TopSkillsCardProps {
   initialSkills?: Skill[];
+}
+
+function sortSkillsByWeight(items: Skill[]): Skill[] {
+  return items.slice().sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
 }
 
 // Clean fallback component rendering the skill's logoUrl from the DB, 
@@ -32,36 +36,27 @@ function SkillIcon({ name, logoUrl }: { name: string; logoUrl?: string }) {
 }
 
 export function TopSkillsCard({ initialSkills }: TopSkillsCardProps) {
-  const [skills, setSkills] = useState<Skill[]>(initialSkills || []);
+  const [skills, setSkills] = useState<Skill[]>(() =>
+    initialSkills ? sortSkillsByWeight(initialSkills) : []
+  );
   const [loading, setLoading] = useState<boolean>(!initialSkills);
 
   useEffect(() => {
     if (initialSkills) {
-      setSkills(initialSkills);
+      setSkills(sortSkillsByWeight(initialSkills));
       setLoading(false);
       return;
     }
 
     let isMounted = true;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     const fetchSkills = async () => {
       try {
-        let rawItems: Skill[] = [];
-        if (apiUrl) {
-          const res = await fetch(`${apiUrl}/api/v1/skills`);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = (await res.json()) as ApiListResponse<Skill>;
-          rawItems = data.data || [];
-        } else {
-          const serviceRes = await getSkills();
-          rawItems = serviceRes.data || [];
-        }
+        const serviceRes = await getSkills();
+        const rawItems = serviceRes.data || [];
 
         if (!isMounted) return;
-        // Sort by weight descending
-        const sorted = rawItems.slice().sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
-        setSkills(sorted);
+        setSkills(sortSkillsByWeight(rawItems));
       } catch (err) {
         console.warn("[TopSkillsCard] Failed to fetch skills from API:", err);
         if (isMounted) setSkills([]);

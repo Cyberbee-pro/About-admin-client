@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { SiteConfig, ApiResponse } from "@/lib/api/types";
 import { getConfig } from "@/lib/api/configService";
 
 export interface ResumePreviewCardProps {
@@ -23,49 +22,20 @@ export function ResumePreviewCard({
     }
 
     let isMounted = true;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    if (apiUrl) {
-      fetch(`${apiUrl}/api/v1/config`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json() as Promise<ApiResponse<SiteConfig>>;
-        })
-        .then((data) => {
-          if (!isMounted) return;
-          if (data.data?.resumeDriveUrl) {
-            setResumeUrl(data.data.resumeDriveUrl);
-          }
-        })
-        .catch((err) => {
-          console.warn("[ResumePreviewCard] Direct fetch failed, falling back to service:", err);
-          getConfig()
-            .then((serviceRes) => {
-              if (!isMounted) return;
-              if (serviceRes.data?.resumeDriveUrl) {
-                setResumeUrl(serviceRes.data.resumeDriveUrl);
-              }
-            })
-            .catch(() => {});
-        })
-        .finally(() => {
-          if (isMounted) setLoading(false);
-        });
-    } else {
-      getConfig()
-        .then((serviceRes) => {
-          if (!isMounted) return;
-          if (serviceRes.data?.resumeDriveUrl) {
-            setResumeUrl(serviceRes.data.resumeDriveUrl);
-          }
-        })
-        .catch((err) => {
-          console.warn("[ResumePreviewCard] Failed to fetch resume URL from config:", err);
-        })
-        .finally(() => {
-          if (isMounted) setLoading(false);
-        });
-    }
+    getConfig()
+      .then((serviceRes) => {
+        if (!isMounted) return;
+        if (serviceRes.data?.resumeDriveUrl) {
+          setResumeUrl(serviceRes.data.resumeDriveUrl);
+        }
+      })
+      .catch((err) => {
+        console.warn("[ResumePreviewCard] Failed to fetch resume URL from config:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
 
     return () => {
       isMounted = false;
