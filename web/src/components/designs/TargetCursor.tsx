@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { gsap } from "gsap";
 import "./TargetCursor.css";
 
@@ -15,6 +16,7 @@ export interface TargetCursorProps {
   parallaxOn?: boolean;
   cursorColor?: string;
   cursorColorOnTarget?: string;
+  excludeRoutes?: string[];
 }
 
 const getContainingBlock = (element: Element | null): Element | null => {
@@ -69,7 +71,11 @@ export default function TargetCursor({
   parallaxOn = true,
   cursorColor = "#52d053",
   cursorColorOnTarget = "#d3290f",
+  excludeRoutes,
 }: TargetCursorProps) {
+  const pathname = usePathname();
+  const isExcluded = Boolean(excludeRoutes && pathname && excludeRoutes.includes(pathname));
+
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -117,7 +123,7 @@ export default function TargetCursor({
   }, []);
 
   useEffect(() => {
-    if (isMobile || !cursorRef.current || !mounted) return;
+    if (isExcluded || isMobile || !cursorRef.current || !mounted) return;
     if (activeCursorInstances > 0) return;
     activeCursorInstances++;
 
@@ -438,9 +444,10 @@ export default function TargetCursor({
     cursorColor,
     cursorColorOnTarget,
     mounted,
+    isExcluded,
   ]);
 
-  if (!mounted || isMobile || typeof document === "undefined") {
+  if (isExcluded || !mounted || isMobile || typeof document === "undefined") {
     return null;
   }
 

@@ -1,11 +1,16 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { getHealth } from "@/lib/api/healthService";
+import { HealthResponse } from "@/lib/api/types";
 
 export interface HeaderTitleProps {
   breadcrumbs?: string[];
   subtitle?: string;
   action?: React.ReactNode;
+  initialHealth?: HealthResponse;
+  pollIntervalMs?: number;
 }
 
 const SEGMENT_NAME_MAP: Record<string, string> = {
@@ -21,8 +26,52 @@ const SEGMENT_NAME_MAP: Record<string, string> = {
   logs: "System Logs",
 };
 
-export function HeaderTitle({ breadcrumbs, subtitle, action }: HeaderTitleProps) {
+export function HeaderTitle({
+  breadcrumbs,
+  subtitle,
+  action,
+  initialHealth,
+  pollIntervalMs = 40000,
+}: HeaderTitleProps) {
   const pathname = usePathname() || "";
+  const [health, setHealth] = useState<HealthResponse | null>(
+    initialHealth || {
+      status: "healthy",
+      dbStatus: "connected",
+      memoryUsageMB: 28,
+      version: "1.0.0",
+      env: "production",
+    }
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchHealth = async () => {
+      try {
+        const data = await getHealth();
+        if (isMounted) setHealth(data);
+      } catch (err) {
+        if (isMounted) {
+          setHealth({
+            status: "offline",
+            dbStatus: "disconnected",
+            memoryUsageMB: 0,
+            version: "1.0.0",
+            env: "production",
+          });
+        }
+      }
+    };
+
+    fetchHealth();
+    const timer = setInterval(fetchHealth, pollIntervalMs);
+
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, [pollIntervalMs]);
 
   // Dynamically resolve breadcrumbs if not explicitly passed
   const resolvedBreadcrumbs: string[] =
@@ -33,6 +82,11 @@ export function HeaderTitle({ breadcrumbs, subtitle, action }: HeaderTitleProps)
           if (segments.length === 0) return ["Dashboard", "Overview"];
           return segments.map((seg) => SEGMENT_NAME_MAP[seg.toLowerCase()] || seg.toUpperCase());
         })();
+
+  const isHealthy = health?.status === "healthy";
+  const statusLabel = isHealthy ? "ONLINE" : "OFFLINE";
+  const statusColorClass = isHealthy ? "text-eva-teal" : "text-eva-red";
+  const indicatorColorClass = isHealthy ? "bg-eva-teal animate-pulse" : "bg-eva-red";
 
   return (
     <header className="h-16 px-8 bg-black flex items-center justify-between sticky top-0 z-10 select-none">
@@ -61,9 +115,9 @@ export function HeaderTitle({ breadcrumbs, subtitle, action }: HeaderTitleProps)
         {action && <div>{action}</div>}
 
         <div className="flex items-center gap-2.5 font-mono text-[11px] tracking-wider text-eva-text-muted px-3 py-1 rounded border border-eva-surface-border bg-eva-charcoal/80">
-          <span className="flex items-center gap-1.5 text-eva-teal font-semibold">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-eva-teal animate-pulse" />
-            ONLINE
+          <span className={`flex items-center gap-1.5 ${statusColorClass} font-semibold`}>
+            <span className={`inline-block w-1.5 h-1.5 rounded-full ${indicatorColorClass}`} />
+            {statusLabel}
           </span>
           <span className="text-eva-surface-border">|</span>
           <span className="text-white">PILOT: Cyberbee-pro</span>

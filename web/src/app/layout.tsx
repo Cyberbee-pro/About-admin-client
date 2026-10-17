@@ -46,6 +46,7 @@ export default function RootLayout({
           cursorColor="#52d053"
           cursorColorOnTarget="#d3290f"
           spinDuration={2}
+          excludeRoutes={["/login"]}
         />
         {children}
       </body>

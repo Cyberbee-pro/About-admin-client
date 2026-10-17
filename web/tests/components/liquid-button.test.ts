@@ -215,6 +215,8 @@ describe("LiquidButton Component", () => {
     assert.ok(htmlActive.includes("liquidWaveSlow"), "Must reference liquidWaveSlow animation");
     assert.ok(htmlActive.includes("liquidWaveFast"), "Must reference liquidWaveFast animation");
     assert.ok(htmlActive.includes('fill="#52d053"'), "Must apply custom waveColor fill to SVG wave");
+    assert.ok(htmlActive.includes("bottom: 115%"), "Must rise based on container height using bottom percentages");
+    assert.ok(htmlActive.includes("prefers-reduced-motion: reduce"), "Must support prefers-reduced-motion accessibility");
   });
 });
 

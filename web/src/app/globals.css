@@ -103,54 +103,70 @@ body {
 /* Rising Liquid Bubble Animations */
 @keyframes bubbleRise1 {
   0% {
-    transform: translateY(110%) translateX(0) scale(0.6);
+    bottom: -15%;
     opacity: 0;
+    transform: translateX(0) scale(0.6);
   }
   20% {
     opacity: 0.8;
   }
   75% {
     opacity: 0.7;
-    transform: translateY(-80%) translateX(3px) scale(1);
+    transform: translateX(3px) scale(1);
   }
   100% {
-    transform: translateY(-140%) translateX(-2px) scale(1.15);
+    bottom: 115%;
     opacity: 0;
+    transform: translateX(-2px) scale(1.15);
   }
 }
 
 @keyframes bubbleRise2 {
   0% {
-    transform: translateY(110%) translateX(0) scale(0.5);
+    bottom: -15%;
     opacity: 0;
+    transform: translateX(0) scale(0.5);
   }
   25% {
     opacity: 0.85;
   }
   70% {
     opacity: 0.75;
-    transform: translateY(-75%) translateX(-3px) scale(0.95);
+    transform: translateX(-3px) scale(0.95);
   }
   100% {
-    transform: translateY(-140%) translateX(3px) scale(1.1);
+    bottom: 115%;
     opacity: 0;
+    transform: translateX(3px) scale(1.1);
   }
 }
 
 @keyframes bubbleRise3 {
   0% {
-    transform: translateY(110%) translateX(0) scale(0.65);
+    bottom: -15%;
     opacity: 0;
+    transform: translateX(0) scale(0.65);
   }
   30% {
     opacity: 0.75;
   }
   65% {
     opacity: 0.6;
-    transform: translateY(-60%) translateX(2px) scale(1.05);
+    transform: translateX(2px) scale(1.05);
   }
   100% {
-    transform: translateY(-140%) translateX(-3px) scale(1.2);
+    bottom: 115%;
     opacity: 0;
+    transform: translateX(-3px) scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="liquid-button-wave-layer"],
+  [data-testid="liquid-button-wave-layer"] *,
+  [data-testid="liquid-bubbles"],
+  [data-testid="liquid-bubbles"] * {
+    animation: none !important;
+    transition: none !important;
   }
 }

@@ -57,6 +57,7 @@ export function AdminSidebar() {
               href={item.href}
               variant="custom"
               isActive={isActive}
+              aria-current={isActive ? "page" : undefined}
               butBorder={0}
               liquidColor="bg-eva-lime"
               activeColor="bg-eva-red"

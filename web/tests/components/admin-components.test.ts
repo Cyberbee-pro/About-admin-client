@@ -107,6 +107,26 @@ describe("Admin Components & Overview Modules", () => {
 
       assert.ok(html.includes("MAGI CONTROL DECK"), "Must display subtitle");
       assert.ok(html.includes("Cyberbee-pro"), "Must show pilot ID Cyberbee-pro");
+      assert.ok(html.includes("ONLINE"), "Must display ONLINE status by default");
+    });
+
+    test("dynamically reflects offline status when system health is degraded", () => {
+      const htmlOffline = renderToString(
+        React.createElement(HeaderTitle, {
+          breadcrumbs: ["Dashboard", "Overview"],
+          initialHealth: {
+            status: "offline",
+            dbStatus: "disconnected",
+            memoryUsageMB: 0,
+            version: "1.0.0",
+            env: "production",
+          },
+        })
+      );
+
+      assert.ok(htmlOffline.includes("OFFLINE"), "Must reflect OFFLINE state when health status is offline");
+      assert.ok(htmlOffline.includes("text-eva-red"), "Must apply text-eva-red class when offline");
+      assert.ok(htmlOffline.includes("bg-eva-red"), "Must apply red indicator badge when offline");
     });
   });
 
