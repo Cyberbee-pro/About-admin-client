@@ -14,7 +14,7 @@ This document serves as the authoritative, comprehensive API reference for devel
 HTTP Request
   │
   ▼
-[cors() - CLIENT_ORIGIN or '*']
+[cors() - Dynamic Multi-Origin Validator from CLIENT_ORIGIN]
   │
   ▼
 [express.json() & express.urlencoded()]
@@ -36,7 +36,7 @@ HTTP Request
 [notFoundMiddleware (404)]  ──► Unmatched endpoints
   │
   ▼
-[errorMiddleware (500/400/409)] ──► Centralized error, CastError, and Duplicate Key handling
+[errorMiddleware (500/400/403/409)] ──► Centralized error, CORS, CastError, and Duplicate Key handling
 ```
 
 ---
@@ -44,6 +44,16 @@ HTTP Request
 ## 2. Base URL & Common Conventions
 
 - **Base URL**: Deploy domain origin followed by `/api/v1` (e.g., `https://api.yourdomain.com/api/v1` or `http://localhost:5000/api/v1`).
+- **CORS & Allowed Origins**:
+  - Validated via a dynamic validator function. Requests without an `Origin` header (such as curl, mobile apps, Postman, or server-to-server) are allowed.
+  - Allowed origins are parsed from the `CLIENT_ORIGIN` environment variable (comma-separated, e.g., `http://localhost:3000,https://core.shibraj.dev,https://client.shibraj.dev,https://shibraj.dev`).
+  - Defaults to `["https://core.shibraj.dev", "https://client.shibraj.dev", "https://shibraj.dev", "http://localhost:3000"]` if `CLIENT_ORIGIN` is not configured.
+  - Wildcard `*` in `CLIENT_ORIGIN` dynamically reflects the requesting origin with credentials enabled.
+  - Trailing slashes in origins are normalized automatically.
+  - **Allowed Methods**: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`.
+  - **Allowed Headers**: `Content-Type`, `Authorization`, `x-admin-token`.
+  - **Credentials**: `true` (`Access-Control-Allow-Credentials: true`).
+  - **Rejected Origins**: Return HTTP `403 Forbidden` with `{ "success": false, "message": "Not allowed by CORS" }`.
 - **Response Format**: All responses are JSON.
   - **Success (Single Resource)**:
     ```json
@@ -923,6 +933,7 @@ export interface ILogEntry {
 | `201 Created` | Created | Successful project, skill, certificate, achievement, experience, version, or config creation. |
 | `400 Bad Request` | Client Error | Missing required fields; malformed ObjectId format (`CastError`); invalid JSON; missing version tag; mismatched `pfpUrl` and `pfpPublicId`. |
 | `401 Unauthorized` | Auth Failure | Missing or incorrect `ADMIN_SECRET` via `Authorization: Bearer` or `x-admin-token`. |
+| `403 Forbidden` | Origin Forbidden | Request origin not allowed by CORS policy. |
 | `404 Not Found` | Not Found | Route does not exist; resource ID does not exist; project slug not found; unauthenticated attempt to read an `invisible` project. |
 | `409 Conflict` | Duplicate Key | Duplicate project slug; duplicate skill name; duplicate cert title; duplicate achievement title; duplicate experience organization; attempting to `POST /api/v1/config` when config already exists. |
 | `500 Server Error` | Server Fault | Unconfigured `ADMIN_SECRET`; database connection failure; unhandled controller crash. |
@@ -981,4 +992,3 @@ export interface ILogEntry {
 4. **Inspecting Server Logs**:
    - Paginate request logs with `GET /api/v1/admin/logs?page=1&limit=50`.
    - Filter errors using `?level=ERROR` or date ranges using `?date=2026-10-17`.
-
