@@ -17,7 +17,7 @@ export async function getConfig(): Promise<ApiResponse<SiteConfig>> {
  * Requires admin authentication.
  */
 export async function updateConfig(
-  data: UpdateConfigInput,
+  data: UpdateConfigInput | FormData,
   options?: ServiceAuthOption
 ): Promise<ApiResponse<SiteConfig>> {
   return apiClient<ApiResponse<SiteConfig>>("/api/v1/config", {
