@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 
 export interface ValidationResult {
   valid: boolean;
@@ -38,6 +39,17 @@ export function ConfigInput({
 }: ConfigInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      setPrefersReducedMotion(mediaQuery.matches);
+      const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+      mediaQuery.addEventListener("change", listener);
+      return () => mediaQuery.removeEventListener("change", listener);
+    }
+  }, []);
 
   // Compute live validation result
   const validation = validator ? validator(value) : null;
@@ -65,21 +77,93 @@ export function ConfigInput({
 
         {/* Input Container */}
         <div className="relative flex items-center gap-2 flex-1 min-w-[240px]">
-          {isExpandable && !isExpanded ? (
-            /* Collapsed Single-Line Mode with Chevron */
-            <div
-              onClick={() => setIsExpanded(true)}
-              className="group cursor-target cursor-pointer flex items-center gap-2 border-b-2 border-[var(--eva-orange)] pb-1 transition-all duration-300 max-w-[500px]"
-              title="Click to expand full content"
-            >
-              <span className="truncate max-w-[280px] sm:max-w-[420px] text-white/95 font-normal">
-                {value || placeholder || "Motivated developer ......"}
-              </span>
-              <span className="text-white/60 group-hover:text-eva-lime transition-colors text-sm px-1">
-                ▼
-              </span>
+          {isExpandable ? (
+            /* Expandable Mode with smooth Opening and Closing Animations */
+            <div className="flex flex-col w-full max-w-[650px]">
+              <AnimatePresence mode="wait" initial={false}>
+                {!isExpanded ? (
+                  <motion.div
+                    key="summary-preview"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{
+                      duration: prefersReducedMotion ? 0 : 0.2,
+                      ease: "easeOut",
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setIsExpanded(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setIsExpanded(true);
+                        }
+                      }}
+                      className="group cursor-target cursor-pointer flex items-center gap-2 border-b-2 border-[var(--eva-orange)] pb-1 transition-all duration-300 max-w-[500px]"
+                      title="Click to expand full content"
+                    >
+                      <span className="truncate max-w-[280px] sm:max-w-[420px] text-white/95 font-normal">
+                        {value || placeholder || "Motivated developer ......"}
+                      </span>
+                      <span className="text-white/60 group-hover:text-eva-lime transition-transform duration-300 text-sm px-1 inline-block group-hover:translate-y-0.5">
+                        ▼
+                      </span>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="summary-expanded"
+                    initial={{ opacity: 0, height: 0, scaleY: 0.96 }}
+                    animate={{ opacity: 1, height: "auto", scaleY: 1 }}
+                    exit={{ opacity: 0, height: 0, scaleY: 0.96 }}
+                    transition={{
+                      duration: prefersReducedMotion ? 0 : 0.32,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="overflow-hidden flex flex-col w-full gap-1 origin-top"
+                  >
+                    <textarea
+                      id={id}
+                      name={id || "config-textarea"}
+                      value={value}
+                      onChange={(e) => onChange(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setIsFocused(false)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          setIsExpanded(false);
+                        }
+                      }}
+                      placeholder={placeholder}
+                      rows={4}
+                      disabled={disabled}
+                      autoComplete="off"
+                      spellCheck={false}
+                      data-form-type="other"
+                      data-1p-ignore="true"
+                      data-lpignore="true"
+                      className={`cursor-target w-full bg-black/60 text-white font-exo2 text-base md:text-lg border-b-2 ${borderBottomColor} p-2 rounded-t outline-none transition-all duration-300 resize-y`}
+                    />
+                    <div className="flex justify-between items-center text-xs font-mono text-white/50 px-1 pt-0.5">
+                      <span>{value.length} CHARS // ACTIVE BUFFER</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsExpanded(false)}
+                        className="cursor-target text-[var(--eva-orange)] hover:text-white transition-colors flex items-center gap-1 font-semibold"
+                        title="Collapse summary editor [Esc]"
+                      >
+                        <span>▲</span> COLLAPSE PREVIEW
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          ) : multiline || (isExpandable && isExpanded) ? (
+          ) : multiline ? (
             /* Multiline Textarea Mode (anti-autofill and zero credential guessing) */
             <div className="flex flex-col w-full max-w-[650px] gap-1">
               <textarea
@@ -99,18 +183,6 @@ export function ConfigInput({
                 data-lpignore="true"
                 className={`cursor-target w-full bg-black/60 text-white font-exo2 text-base md:text-lg border-b-2 ${borderBottomColor} p-2 rounded-t outline-none transition-all duration-300 resize-y`}
               />
-              {isExpandable && (
-                <div className="flex justify-between items-center text-xs font-mono text-white/50 px-1">
-                  <span>{value.length} CHARS</span>
-                  <button
-                    type="button"
-                    onClick={() => setIsExpanded(false)}
-                    className="cursor-target text-[var(--eva-orange)] hover:text-white transition-colors"
-                  >
-                    ▲ COLLAPSE PREVIEW
-                  </button>
-                </div>
-              )}
             </div>
           ) : (
             /* Underlined Expanding Text Input (anti-autofill, zero password prompts or glows) */

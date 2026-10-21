@@ -103,7 +103,7 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(invalidHtml.includes("ONLY LETTERS AND SPACES ALLOWED"), "Must show error description");
     });
 
-    test("Expandable summary field renders chevron toggle for collapsed preview", () => {
+    test("Expandable summary field renders chevron toggle for collapsed preview with animation wrapper", () => {
       const html = renderToString(
         React.createElement(ConfigInput, {
           label: "Summary",
@@ -116,6 +116,8 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(html.includes("Summary :"), "Must render Summary label");
       assert.ok(html.includes("▼"), "Must render chevron toggle symbol for expanding");
       assert.ok(html.includes("cursor-target"), "Must be targetable by TargetCursor");
+      assert.ok(html.includes('role="button"'), "Must be accessible as a toggle button");
+      assert.ok(html.includes("overflow-hidden"), "Must contain animated overflow-hidden wrapper");
     });
   });
 
