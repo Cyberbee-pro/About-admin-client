@@ -42,6 +42,12 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(html.includes("cursor-target"), "Must include .cursor-target for TargetCursor");
       assert.ok(html.includes("border-b-2"), "Must use bottom-only underlined border");
       assert.ok(html.includes("focus:w-[350px]"), "Must support smooth expansion on focus");
+      assert.ok(/autocomplete="off"/i.test(html), "Must disable autocomplete to stop browser credential prompts");
+      assert.ok(html.includes('type="text"'), "Must use type='text'");
+      assert.ok(html.includes('data-form-type="other"'), "Must declare data-form-type='other'");
+      assert.ok(html.includes('data-1p-ignore="true"'), "Must include 1Password ignore flag");
+      assert.ok(html.includes('data-lpignore="true"'), "Must include LastPass ignore flag");
+      assert.strictEqual(html.includes('type="password"'), false, "Must never render password type");
     });
 
     test("Name Validation: validates alphabets and spaces only", () => {
@@ -168,6 +174,8 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.strictEqual(html.includes("Email :"), false, "Random Email field must be removed");
       assert.strictEqual(html.includes("Phone :"), false, "Random Phone field must be removed");
       assert.strictEqual(html.includes("Secret :"), false, "Random Secret field must be removed");
+      assert.strictEqual(html.includes('type="password"'), false, "Must contain zero password inputs or credential triggers");
+      assert.ok(html.includes("my-auto"), "Must vertically center main card content to prevent hanging dead space");
       assert.ok(html.includes("SAVE CONFIGURATION"), "Must render save button");
       assert.ok(html.includes("haz_strip.svg"), "Must render bottom hazard strip");
     });

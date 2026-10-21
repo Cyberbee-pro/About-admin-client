@@ -12,7 +12,7 @@ export interface ConfigInputProps {
   label: string;
   value: string;
   onChange: (val: string) => void;
-  type?: "text" | "email" | "tel" | "password";
+  type?: "text";
   placeholder?: string;
   validator?: (val: string) => ValidationResult;
   isExpandable?: boolean;
@@ -38,7 +38,6 @@ export function ConfigInput({
 }: ConfigInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // Compute live validation result
   const validation = validator ? validator(value) : null;
@@ -52,8 +51,6 @@ export function ConfigInput({
     : isValid
     ? "border-[var(--eva-lime)]"
     : "border-[var(--eva-orange)]";
-
-  const inputType = type === "password" ? (showPassword ? "text" : "password") : type;
 
   return (
     <div className="flex flex-col gap-0.5 w-full select-none" data-testid={dataTestId}>
@@ -83,10 +80,11 @@ export function ConfigInput({
               </span>
             </div>
           ) : multiline || (isExpandable && isExpanded) ? (
-            /* Multiline Textarea Mode */
+            /* Multiline Textarea Mode (anti-autofill and zero credential guessing) */
             <div className="flex flex-col w-full max-w-[650px] gap-1">
               <textarea
                 id={id}
+                name={id || "config-textarea"}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 onFocus={() => setIsFocused(true)}
@@ -94,6 +92,11 @@ export function ConfigInput({
                 placeholder={placeholder}
                 rows={4}
                 disabled={disabled}
+                autoComplete="off"
+                spellCheck={false}
+                data-form-type="other"
+                data-1p-ignore="true"
+                data-lpignore="true"
                 className={`cursor-target w-full bg-black/60 text-white font-exo2 text-base md:text-lg border-b-2 ${borderBottomColor} p-2 rounded-t outline-none transition-all duration-300 resize-y`}
               />
               {isExpandable && (
@@ -110,31 +113,27 @@ export function ConfigInput({
               )}
             </div>
           ) : (
-            /* Underlined Expanding Input (zero box-shadow or ambient glow) */
+            /* Underlined Expanding Text Input (anti-autofill, zero password prompts or glows) */
             <div className="relative flex items-center">
               <input
                 id={id}
-                type={inputType}
+                name={id || "config-text"}
+                type="text"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 placeholder={placeholder}
                 disabled={disabled}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                data-form-type="other"
+                data-1p-ignore="true"
+                data-lpignore="true"
                 className={`cursor-target bg-transparent text-white font-exo2 text-xl md:text-2xl border-b-2 ${borderBottomColor} pb-0.5 outline-none transition-all duration-300 w-[240px] sm:w-[280px] focus:w-[350px] md:focus:w-[480px]`}
               />
-
-              {/* Password visibility toggle */}
-              {type === "password" && (
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="cursor-target ml-2 text-xs font-mono text-white/60 hover:text-eva-lime transition-colors"
-                  title={showPassword ? "Hide secret" : "Reveal secret"}
-                >
-                  {showPassword ? "[HIDE]" : "[SHOW]"}
-                </button>
-              )}
             </div>
           )}
 

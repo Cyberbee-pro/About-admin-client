@@ -257,7 +257,7 @@ export default function AdminConfigPage() {
   };
 
   return (
-    <div className="relative flex-1 bg-[var(--eva-black)] text-white flex flex-col justify-between min-h-[calc(100vh-4rem)] select-none overflow-x-hidden">
+    <div className="relative flex-1 bg-[var(--eva-black)] text-white flex flex-col min-h-[calc(100vh-4rem)] select-none overflow-x-hidden">
       {/* WebGL PatternWaves Background */}
       <div
         className="absolute inset-0 z-0 opacity-80 pointer-events-none overflow-hidden"
@@ -279,7 +279,7 @@ export default function AdminConfigPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="relative z-10 p-5 md:p-8 max-w-[1600px] w-full mx-auto flex-1 flex flex-col justify-between space-y-4 sm:space-y-6">
+      <div className="relative z-10 px-6 py-6 md:px-10 md:py-8 max-w-[1600px] w-full mx-auto my-auto flex flex-col justify-center gap-5 md:gap-6">
         {/* Top Header / Monospace Breadcrumbs matching screenshot */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-3">
           <nav aria-label="Breadcrumb" className="font-exo2 text-2xl font-normal text-white tracking-wide">
@@ -430,7 +430,7 @@ export default function AdminConfigPage() {
       </div>
 
       {/* Full-width Hazard Strip Footer matching screenshot */}
-      <div className="relative z-10 w-full h-8 sm:h-10 overflow-hidden shrink-0 mt-4 sm:mt-6">
+      <div className="relative z-10 w-full h-8 sm:h-10 overflow-hidden shrink-0 mt-auto">
         <div
           className="w-full h-full"
           style={{

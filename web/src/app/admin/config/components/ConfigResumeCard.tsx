@@ -199,7 +199,15 @@ export function ConfigResumeCard({
         {isEditingUrl ? (
           <div className="flex items-center gap-2 w-full">
             <input
-              type="url"
+              type="text"
+              name="resume-url"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-form-type="other"
+              data-1p-ignore="true"
+              data-lpignore="true"
               value={tempUrl}
               onChange={(e) => setTempUrl(e.target.value)}
               placeholder="https://drive.google.com/..."
