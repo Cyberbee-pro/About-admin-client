@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { SiteConfig, PfpItem } from "@/lib/api/types";
+import { SiteConfig, UpdateConfigInput, PfpItem } from "@/lib/api/types";
 import { getConfig, updateConfig } from "@/lib/api/configService";
 import { ConfigInput, ValidationResult } from "./components/ConfigInput";
 import { ConfigResumeCard } from "./components/ConfigResumeCard";
@@ -14,7 +14,7 @@ const PatternWaves = dynamic(() => import("@/components/designs/PatternWaves"), 
   ssr: false,
 });
 
-// Validation Rule Helpers conforming strictly to specifications
+// Validation Rule Helpers conforming strictly to backend schema specifications
 const validateName = (val: string): ValidationResult => {
   if (!val.trim()) {
     return { valid: false, message: "NAME REQUIRED // ALPHABET AND SPACES ONLY" };
@@ -28,69 +28,16 @@ const validateName = (val: string): ValidationResult => {
   };
 };
 
-const validateEmail = (val: string): ValidationResult => {
+const validateResumeUrl = (val: string): ValidationResult => {
   if (!val.trim()) {
-    return { valid: false, message: "COMMS EMAIL REQUIRED" };
+    return { valid: false, message: "RESUME DRIVE URL REQUIRED" };
   }
-  const atCount = (val.match(/@/g) || []).length;
-  const dotCount = (val.match(/\./g) || []).length;
-  const standardRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const isValid = atCount === 1 && dotCount >= 1 && standardRegex.test(val);
+  const isValid = /^https?:\/\/.+/.test(val.trim());
   return {
     valid: isValid,
     message: isValid
-      ? "ACCEPTED // COMMS FREQUENCY VERIFIED"
-      : "ERROR // INVALID FORMAT (CHECK '@' AND '.' COUNTS)",
-  };
-};
-
-const validatePhone = (val: string): ValidationResult => {
-  if (!val.trim()) {
-    return { valid: false, message: "PHONE NUMBER REQUIRED" };
-  }
-  const isValid = /^\d{10}$/.test(val.trim());
-  return {
-    valid: isValid,
-    message: isValid
-      ? "ACCEPTED // DIRECT LINE SECURED (10-DIGIT)"
-      : "ERROR // EXACTLY 10 NUMERIC DIGITS REQUIRED",
-  };
-};
-
-const validateSecret = (val: string): ValidationResult => {
-  if (!val) {
-    return { valid: false, message: "SECURITY ACCESS PHRASE REQUIRED" };
-  }
-  const lenOk = val.length > 8;
-  const numCount = (val.match(/\d/g) || []).length;
-  const alphaCount = (val.match(/[a-zA-Z]/g) || []).length;
-  const lowerCount = (val.match(/[a-z]/g) || []).length;
-  const upperCount = (val.match(/[A-Z]/g) || []).length;
-  const specialCount = (val.match(/[^a-zA-Z0-9]/g) || []).length;
-
-  const isValid =
-    lenOk &&
-    numCount >= 2 &&
-    alphaCount >= 5 &&
-    lowerCount >= 3 &&
-    upperCount >= 1 &&
-    specialCount >= 1;
-
-  if (isValid) {
-    return { valid: true, message: "ACCEPTED // ENCRYPTION KEY STRENGTH OPTIMAL" };
-  }
-
-  const missing: string[] = [];
-  if (!lenOk) missing.push(">8 chars");
-  if (numCount < 2) missing.push(">=2 nums");
-  if (alphaCount < 5) missing.push(">=5 alphas");
-  if (lowerCount < 3) missing.push(">=3 lower");
-  if (upperCount < 1) missing.push(">=1 upper");
-  if (specialCount < 1) missing.push(">=1 special");
-
-  return {
-    valid: false,
-    message: `SECURITY DEFICIT // REQUIRES: ${missing.join(", ")}`,
+      ? "ACCEPTED // VALID DOCUMENT ENDPOINT"
+      : "ERROR // VALID URL REQUIRED (HTTP/HTTPS)",
   };
 };
 
@@ -123,15 +70,12 @@ export default function AdminConfigPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Form Field States
+  // Form Field States (matching backend SiteConfig schema)
   const [name, setName] = useState("");
   const [jobTitlesStr, setJobTitlesStr] = useState("");
   const [bio, setBio] = useState("");
-  const [summary, setSummary] = useState("");
-  const [email, setEmail] = useState("cyb.shibrajdas@gmail.com");
-  const [phone, setPhone] = useState("8420607640");
-  const [secret, setSecret] = useState("MagiSync#2026Secure!");
   const [resumeUrl, setResumeUrl] = useState("");
+  const [summary, setSummary] = useState("");
 
   // Avatar Management States
   const [pfpUrl, setPfpUrl] = useState<string | undefined>(undefined);
@@ -158,11 +102,11 @@ export default function AdminConfigPage() {
             : "Full-stack dev / Game dev / Low Level dev"
         );
         setBio(d.statusMessage || "Limited probabilities Infinite Possibilities");
+        setResumeUrl(d.resumeDriveUrl || "https://drive.google.com/file/d/resume/view");
         setSummary(
           d.bioSummary ||
             "Motivated developer with experience in game development, web technologies, and AI research. Skilled in JavaScript, TypeScript, C, C++, Java, Python, React, Next.js, Node.js, NumPy, Pandas, Blender, GitHub, and Figma."
         );
-        setResumeUrl(d.resumeDriveUrl || "https://drive.google.com/file/d/resume/view");
         setPfpUrl(d.pfpUrl);
         setPfpHistory(d.pfpHistory || []);
       }
@@ -172,8 +116,8 @@ export default function AdminConfigPage() {
       setName("Cyberbee pro");
       setJobTitlesStr("Full-stack dev / Game dev / Low Level dev");
       setBio("Limited probabilities Infinite Possibilities");
-      setSummary("Motivated developer with experience in game development, web technologies, and AI research.");
       setResumeUrl("https://drive.google.com/file/d/resume/view");
+      setSummary("Motivated developer with experience in game development, web technologies, and AI research.");
     } finally {
       setIsLoading(false);
     }
@@ -191,11 +135,12 @@ export default function AdminConfigPage() {
 
     // Validate main required fields
     const nameValid = validateName(name).valid;
-    const emailValid = validateEmail(email).valid;
-    const phoneValid = validatePhone(phone).valid;
-    const secretValid = validateSecret(secret).valid;
+    const jobValid = validateJob(jobTitlesStr).valid;
+    const bioValid = validateBio(bio).valid;
+    const resumeValid = validateResumeUrl(resumeUrl).valid;
+    const summaryValid = validateSummary(summary).valid;
 
-    if (!nameValid || !emailValid || !phoneValid || !secretValid) {
+    if (!nameValid || !jobValid || !bioValid || !resumeValid || !summaryValid) {
       setIsSaving(false);
       setFeedback({
         type: "error",
@@ -211,7 +156,7 @@ export default function AdminConfigPage() {
       .filter(Boolean);
 
     try {
-      const payload = {
+      const payload: UpdateConfigInput = {
         name: name.trim(),
         jobTitles: parsedJobs.length > 0 ? parsedJobs : ["Full-stack dev"],
         statusMessage: bio.trim(),
@@ -395,8 +340,8 @@ export default function AdminConfigPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left Column: Form Inputs & Resume (span 8) */}
           <div className="lg:col-span-8 flex flex-col gap-4">
-            {/* Primary Config Fields matching screenshot */}
-            <div className="flex flex-col gap-2 sm:gap-2.5">
+            {/* Primary Config Fields matching backend SiteConfig schema */}
+            <div className="flex flex-col gap-2.5 sm:gap-3">
               {/* Name */}
               <ConfigInput
                 id="cfg-name"
@@ -421,7 +366,7 @@ export default function AdminConfigPage() {
                 data-testid="config-job-input"
               />
 
-              {/* Bio */}
+              {/* Bio / Status Message */}
               <ConfigInput
                 id="cfg-bio"
                 label="Bio"
@@ -431,6 +376,19 @@ export default function AdminConfigPage() {
                 validator={validateBio}
                 disabled={isLoading || isSaving}
                 data-testid="config-bio-input"
+              />
+
+              {/* Resume Drive URL */}
+              <ConfigInput
+                id="cfg-resume-url"
+                label="Resume URL"
+                type="text"
+                value={resumeUrl}
+                onChange={setResumeUrl}
+                placeholder="https://drive.google.com/file/d/..."
+                validator={validateResumeUrl}
+                disabled={isLoading || isSaving}
+                data-testid="config-resume-url-input"
               />
 
               {/* Summary with expandable chevron matching screenshot */}
@@ -444,53 +402,6 @@ export default function AdminConfigPage() {
                 isExpandable={true}
                 disabled={isLoading || isSaving}
                 data-testid="config-summary-input"
-              />
-            </div>
-
-            {/* Verification & Security Credentials Panel */}
-            <div className="mt-2 pt-3 border-t border-white/10 flex flex-col gap-2 sm:gap-2.5">
-              <div className="text-[11px] font-mono text-[var(--eva-orange)] tracking-widest uppercase flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--eva-orange)] animate-pulse" />
-                <span>COMMS &amp; SECURITY PROTOCOLS</span>
-              </div>
-
-              {/* Email */}
-              <ConfigInput
-                id="cfg-email"
-                label="Email"
-                type="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="pilot@nerv.magi"
-                validator={validateEmail}
-                disabled={isLoading || isSaving}
-                data-testid="config-email-input"
-              />
-
-              {/* Phone */}
-              <ConfigInput
-                id="cfg-phone"
-                label="Phone"
-                type="tel"
-                value={phone}
-                onChange={setPhone}
-                placeholder="8420607640"
-                validator={validatePhone}
-                disabled={isLoading || isSaving}
-                data-testid="config-phone-input"
-              />
-
-              {/* Secret Passphrase */}
-              <ConfigInput
-                id="cfg-secret"
-                label="Secret"
-                type="password"
-                value={secret}
-                onChange={setSecret}
-                placeholder="Enter access passphrase"
-                validator={validateSecret}
-                disabled={isLoading || isSaving}
-                data-testid="config-secret-input"
               />
             </div>
 

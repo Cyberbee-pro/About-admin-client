@@ -46,21 +46,12 @@ export function ConfigInput({
   const isValid = validation !== null && validation.valid && value.length > 0;
 
   // Determine underline color:
-  // Red on error, Lime when valid and filled, Orange on focus/default
+  // Red on error, Lime when valid and filled, Orange on focus/default (zero box-shadow or ambient glow)
   const borderBottomColor = isError
-    ? "border-[var(--eva-red)] shadow-[0_2px_8px_rgba(211,41,15,0.4)]"
+    ? "border-[var(--eva-red)]"
     : isValid
-    ? "border-[var(--eva-lime)] shadow-[0_2px_8px_rgba(82,208,83,0.3)]"
-    : isFocused
-    ? "border-[var(--eva-orange)] shadow-[0_2px_8px_rgba(230,119,11,0.3)]"
+    ? "border-[var(--eva-lime)]"
     : "border-[var(--eva-orange)]";
-
-  // Determine validation status indicator bar classes
-  const statusBorderClass = isError
-    ? "border-l-[var(--eva-red)] text-[var(--eva-red)] bg-[var(--eva-red)]/5 shadow-[0_0_12px_rgba(211,41,15,0.25)]"
-    : isValid
-    ? "border-l-[var(--eva-lime)] text-[var(--eva-lime)] bg-[var(--eva-lime)]/5 shadow-[0_0_12px_rgba(82,208,83,0.25)]"
-    : "border-l-[var(--eva-orange)]/60 text-white/50 bg-white/5";
 
   const inputType = type === "password" ? (showPassword ? "text" : "password") : type;
 
@@ -119,7 +110,7 @@ export function ConfigInput({
               )}
             </div>
           ) : (
-            /* Underlined Expanding Input */
+            /* Underlined Expanding Input (zero box-shadow or ambient glow) */
             <div className="relative flex items-center">
               <input
                 id={id}
@@ -152,15 +143,13 @@ export function ConfigInput({
         </div>
       </div>
 
-      {/* Interactive Validation Status Bar (Input_chk) */}
-      {validation && (
+      {/* Active Error Status Text: ONLY shown when there is an active validation error */}
+      {isError && validation && (
         <div
           data-testid="input-chk"
-          className={`border-l-2 pl-2.5 py-0.5 mt-0.5 text-[11px] leading-tight font-mono transition-all duration-200 w-fit max-w-[500px] ${statusBorderClass}`}
+          className="border-l-2 border-l-[var(--eva-red)] text-[var(--eva-red)] bg-[var(--eva-red)]/5 pl-2 py-0.5 mt-0.5 text-[11px] leading-tight font-mono transition-all duration-200 w-fit max-w-[500px]"
         >
-          <span className="font-semibold tracking-wider">
-            {isError ? "[ERROR]" : isValid ? "[VERIFIED]" : "[STANDBY]"}
-          </span>{" "}
+          <span className="font-semibold tracking-wider">[ERROR]</span>{" "}
           <span className="opacity-90">{validation.message}</span>
         </div>
       )}
