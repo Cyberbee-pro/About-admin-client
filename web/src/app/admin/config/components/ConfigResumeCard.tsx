@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 export interface ConfigResumeCardProps {
   resumeUrl: string;
   onUpdateResumeUrl: (newUrl: string) => void;
   onUploadResumeFile?: (file: File) => void;
+  stagedFileName?: string;
   disabled?: boolean;
 }
 
@@ -13,11 +14,16 @@ export function ConfigResumeCard({
   resumeUrl,
   onUpdateResumeUrl,
   onUploadResumeFile,
+  stagedFileName,
   disabled = false,
 }: ConfigResumeCardProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isEditingUrl, setIsEditingUrl] = useState(false);
   const [tempUrl, setTempUrl] = useState(resumeUrl);
+
+  useEffect(() => {
+    setTempUrl(resumeUrl);
+  }, [resumeUrl]);
 
   const handleUploadClick = () => {
     if (disabled) return;
@@ -54,9 +60,19 @@ export function ConfigResumeCard({
 
       {/* Top Header Bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-eva-purple text-white">
-        <span className="font-exo2 text-2xl font-normal tracking-wide">
-          Resume.pdf
-        </span>
+        <div className="flex items-center gap-2 overflow-hidden mr-2">
+          <span className="font-exo2 text-2xl font-normal tracking-wide shrink-0">
+            Resume.pdf
+          </span>
+          {stagedFileName && (
+            <span
+              data-testid="resume-staged-badge"
+              className="text-[10px] font-mono px-2 py-0.5 bg-[var(--eva-lime)]/20 text-[var(--eva-lime)] border border-[var(--eva-lime)]/50 rounded uppercase tracking-wider truncate max-w-[180px]"
+            >
+              {`[STAGED: ${stagedFileName}]`}
+            </span>
+          )}
+        </div>
 
         {/* 3 Action Triggers: Upload [↑], Download [↓], External Link [↗] */}
         <div className="flex items-center gap-3">

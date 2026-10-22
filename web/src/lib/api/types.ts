@@ -130,7 +130,9 @@ export interface SiteConfig {
   pfpPublicId?: string;
   pfpHistory?: PfpItem[];
   jobTitles?: string[];
-  resumeDriveUrl: string;
+  resumeUrl?: string;
+  resumeDriveUrl?: string;
+  resumePublicId?: string;
   statusMessage: string;
   bioSummary: string;
   createdAt?: string;

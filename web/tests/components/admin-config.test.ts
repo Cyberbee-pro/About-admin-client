@@ -138,6 +138,20 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(html.includes(`href="${resumeUrl}"`), "External link must target resumeUrl");
       assert.ok(html.includes("SHIBRAJ DAS"), "Must render document preview sheet");
     });
+
+    test("renders staged badge when stagedFileName is provided", () => {
+      const resumeUrl = "https://drive.google.com/file/d/test_resume/view";
+      const html = renderToString(
+        React.createElement(ConfigResumeCard, {
+          resumeUrl,
+          onUpdateResumeUrl: () => {},
+          stagedFileName: "my_cv.pdf",
+        })
+      );
+
+      assert.ok(html.includes("STAGED: my_cv.pdf"), "Must display staged badge");
+      assert.ok(html.includes('data-testid="resume-staged-badge"'), "Must include testid");
+    });
   });
 
   describe("ConfigAvatarCard Component", () => {

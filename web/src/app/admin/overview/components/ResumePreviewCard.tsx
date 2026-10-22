@@ -26,8 +26,9 @@ export function ResumePreviewCard({
     getConfig()
       .then((serviceRes) => {
         if (!isMounted) return;
-        if (serviceRes.data?.resumeDriveUrl) {
-          setResumeUrl(serviceRes.data.resumeDriveUrl);
+        const fetchedUrl = serviceRes.data?.resumeUrl || serviceRes.data?.resumeDriveUrl;
+        if (fetchedUrl) {
+          setResumeUrl(fetchedUrl);
         }
       })
       .catch((err) => {

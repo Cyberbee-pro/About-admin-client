@@ -4,7 +4,7 @@ import React, { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { SiteConfig, UpdateConfigInput, PfpItem } from "@/lib/api/types";
-import { getConfig, updateConfig } from "@/lib/api/configService";
+import { getConfig, updateConfig, uploadResumeFile } from "@/lib/api/configService";
 import { ConfigInput, ValidationResult } from "./components/ConfigInput";
 import { ConfigResumeCard } from "./components/ConfigResumeCard";
 import { ConfigAvatarCard } from "./components/ConfigAvatarCard";
@@ -77,6 +77,9 @@ export default function AdminConfigPage() {
   const [resumeUrl, setResumeUrl] = useState("");
   const [summary, setSummary] = useState("");
 
+  // Selected resume PDF staged for upload
+  const [selectedResumeFile, setSelectedResumeFile] = useState<File | null>(null);
+
   // Avatar Management States
   const [pfpUrl, setPfpUrl] = useState<string | undefined>(undefined);
   const [pfpHistory, setPfpHistory] = useState<PfpItem[]>([]);
@@ -102,13 +105,15 @@ export default function AdminConfigPage() {
             : "Full-stack dev / Game dev / Low Level dev"
         );
         setBio(d.statusMessage || "Limited probabilities Infinite Possibilities");
-        setResumeUrl(d.resumeDriveUrl || "https://drive.google.com/file/d/resume/view");
+        const existingResume = d.resumeUrl || d.resumeDriveUrl || "";
+        setResumeUrl(existingResume || "https://drive.google.com/file/d/resume/view");
         setSummary(
           d.bioSummary ||
             "Motivated developer with experience in game development, web technologies, and AI research. Skilled in JavaScript, TypeScript, C, C++, Java, Python, React, Next.js, Node.js, NumPy, Pandas, Blender, GitHub, and Figma."
         );
         setPfpUrl(d.pfpUrl);
         setPfpHistory(d.pfpHistory || []);
+        setSelectedResumeFile(null);
       }
     } catch (err: unknown) {
       console.warn("[AdminConfigPage] Failed to fetch config from API:", err);
@@ -127,7 +132,7 @@ export default function AdminConfigPage() {
     loadConfigData();
   }, []);
 
-  // Save changes to backend via PUT /api/v1/config
+  // Save changes to backend via PUT /api/v1/config (and conditional multipart resume upload)
   const handleSaveAll = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSaving(true);
@@ -137,7 +142,7 @@ export default function AdminConfigPage() {
     const nameValid = validateName(name).valid;
     const jobValid = validateJob(jobTitlesStr).valid;
     const bioValid = validateBio(bio).valid;
-    const resumeValid = validateResumeUrl(resumeUrl).valid;
+    const resumeValid = selectedResumeFile ? true : validateResumeUrl(resumeUrl).valid;
     const summaryValid = validateSummary(summary).valid;
 
     if (!nameValid || !jobValid || !bioValid || !resumeValid || !summaryValid) {
@@ -156,17 +161,35 @@ export default function AdminConfigPage() {
       .filter(Boolean);
 
     try {
+      let activeResumeUrl = resumeUrl.trim();
+
+      // Conditional Multipart Upload:
+      // If a new PDF file is selected by the user, upload via the dedicated /api/v1/config/resume endpoint
+      if (selectedResumeFile) {
+        const resumeUploadRes = await uploadResumeFile(selectedResumeFile);
+        if (resumeUploadRes?.data?.resumeUrl) {
+          activeResumeUrl = resumeUploadRes.data.resumeUrl;
+          setResumeUrl(activeResumeUrl);
+        }
+        setSelectedResumeFile(null);
+      }
+
+      // Submit configuration payload with the active resumeUrl
       const payload: UpdateConfigInput = {
         name: name.trim(),
         jobTitles: parsedJobs.length > 0 ? parsedJobs : ["Full-stack dev"],
         statusMessage: bio.trim(),
         bioSummary: summary.trim(),
-        resumeDriveUrl: resumeUrl.trim(),
+        resumeUrl: activeResumeUrl,
+        resumeDriveUrl: activeResumeUrl,
       };
 
       const res = await updateConfig(payload);
       if (res?.data) {
         setConfig(res.data);
+        if (res.data.resumeUrl) {
+          setResumeUrl(res.data.resumeUrl);
+        }
       }
 
       setFeedback({
@@ -190,7 +213,18 @@ export default function AdminConfigPage() {
     setIsSaving(true);
     setFeedback(null);
     try {
+      const parsedJobs = jobTitlesStr
+        .split(/[\/,]+/)
+        .map((j) => j.trim())
+        .filter(Boolean);
+
       const res = await updateConfig({
+        name: name.trim() || config?.name || "Cyberbee pro",
+        jobTitles: parsedJobs.length > 0 ? parsedJobs : (config?.jobTitles || ["Full-stack dev"]),
+        resumeUrl: resumeUrl.trim() || config?.resumeUrl || config?.resumeDriveUrl || "https://drive.google.com/file/d/resume/view",
+        resumeDriveUrl: resumeUrl.trim() || config?.resumeDriveUrl || config?.resumeUrl,
+        statusMessage: bio.trim() || config?.statusMessage || "Available",
+        bioSummary: summary.trim() || config?.bioSummary || "Bio summary",
         pfpPublicId: pfpItem.publicId,
         pfpUrl: pfpItem.url,
       });
@@ -221,8 +255,30 @@ export default function AdminConfigPage() {
     setIsSaving(true);
     setFeedback(null);
     try {
+      const parsedJobs = jobTitlesStr
+        .split(/[\/,]+/)
+        .map((j) => j.trim())
+        .filter(Boolean);
+
       const formData = new FormData();
       formData.append("pfp", file);
+      formData.append("name", name.trim() || config?.name || "Cyberbee pro");
+      formData.append(
+        "jobTitles",
+        JSON.stringify(parsedJobs.length > 0 ? parsedJobs : (config?.jobTitles || ["Full-stack dev"]))
+      );
+      formData.append(
+        "resumeUrl",
+        resumeUrl.trim() || config?.resumeUrl || config?.resumeDriveUrl || "https://drive.google.com/file/d/resume/view"
+      );
+      formData.append(
+        "statusMessage",
+        bio.trim() || config?.statusMessage || "Available"
+      );
+      formData.append(
+        "bioSummary",
+        summary.trim() || config?.bioSummary || "Bio summary"
+      );
 
       const res = await updateConfig(formData);
       if (res?.data) {
@@ -246,12 +302,25 @@ export default function AdminConfigPage() {
     }
   };
 
-  // Upload New Resume File
+  // Stage New Resume File (PDF)
   const handleUploadResumeFile = (file: File) => {
+    const isPdf =
+      file.type === "application/pdf" ||
+      file.name.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      setFeedback({
+        type: "error",
+        message: "INVALID FILE FORMAT // ONLY PDF DOCUMENTS ARE ACCEPTED FOR RESUME UPLOAD",
+      });
+      return;
+    }
+
+    setSelectedResumeFile(file);
     startTransition(() => {
       setFeedback({
         type: "info",
-        message: `[DOCUMENT QUEUED] // ${file.name.toUpperCase()} ATTACHED. SAVE TO COMMIT.`,
+        message: `[DOCUMENT QUEUED] // ${file.name.toUpperCase()} STAGED. SAVE CONFIGURATION TO TRANSMIT.`,
       });
     });
   };
@@ -409,8 +478,12 @@ export default function AdminConfigPage() {
             <div className="mt-3 sm:mt-4">
               <ConfigResumeCard
                 resumeUrl={resumeUrl}
-                onUpdateResumeUrl={(newUrl) => setResumeUrl(newUrl)}
+                onUpdateResumeUrl={(newUrl) => {
+                  setResumeUrl(newUrl);
+                  setSelectedResumeFile(null);
+                }}
                 onUploadResumeFile={handleUploadResumeFile}
+                stagedFileName={selectedResumeFile ? selectedResumeFile.name : undefined}
                 disabled={isLoading || isSaving}
               />
             </div>

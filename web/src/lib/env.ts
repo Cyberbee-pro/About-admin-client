@@ -46,6 +46,10 @@ export function getRequiredEnv(name: string): string {
     value = process.env.NEXT_PUBLIC_PORTFOLIO_URL;
   } else if (name === "NEXT_PUBLIC_APP_URL") {
     value = process.env.NEXT_PUBLIC_APP_URL;
+  } else if (name === "ADMIN_SECRET") {
+    value = process.env.ADMIN_SECRET || process.env.NEXT_PUBLIC_ADMIN_SECRET;
+  } else if (name === "NEXT_PUBLIC_ADMIN_SECRET") {
+    value = process.env.NEXT_PUBLIC_ADMIN_SECRET || process.env.ADMIN_SECRET;
   } else {
     value = process.env[name];
   }
@@ -100,7 +104,13 @@ export const getPortfolioUrl = (): string => {
   return val.trim();
 };
 
-export const getAdminSecret = (): string => getRequiredEnv("ADMIN_SECRET");
+export const getAdminSecret = (): string => {
+  const val = process.env.ADMIN_SECRET || process.env.NEXT_PUBLIC_ADMIN_SECRET;
+  if (!val || val.trim() === "") {
+    throw new ConfigurationError("ADMIN_SECRET");
+  }
+  return val.trim();
+};
 export const getGitHubClientId = (): string => getRequiredEnv("GITHUB_CLIENT_ID");
 export const getGitHubClientSecret = (): string => getRequiredEnv("GITHUB_CLIENT_SECRET");
 export const getAdminPassword = (): string => getRequiredEnv("ADMIN_PASSWORD");
