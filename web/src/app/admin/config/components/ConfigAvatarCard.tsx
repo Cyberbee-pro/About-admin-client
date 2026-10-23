@@ -113,7 +113,7 @@ export function ConfigAvatarCard({
           alt="Pilot Frame"
           width={187}
           height={198}
-          className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none z-0"
           priority
         />
 

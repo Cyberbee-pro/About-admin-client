@@ -5,7 +5,11 @@ import { renderToString } from "react-dom/server";
 import { ConfigInput } from "@/app/admin/config/components/ConfigInput";
 import { ConfigResumeCard } from "@/app/admin/config/components/ConfigResumeCard";
 import { ConfigAvatarCard } from "@/app/admin/config/components/ConfigAvatarCard";
-import AdminConfigPage from "@/app/admin/config/page";
+import AdminConfigPage, {
+  buildSetAsPfpPayload,
+  buildUploadPfpFormData,
+} from "@/app/admin/config/page";
+import { SiteConfig, PfpItem } from "@/lib/api/types";
 
 // Validation Rule Helpers extracted for testing
 const validateName = (val: string) => {
@@ -194,6 +198,92 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(html.includes("my-auto"), "Must vertically center main card content to prevent hanging dead space");
       assert.ok(html.includes("SAVE CONFIGURATION"), "Must render save button");
       assert.ok(html.includes("haz_strip.svg"), "Must render bottom hazard strip");
+    });
+  });
+
+  describe("Avatar Operations Form Field Commit Guard", () => {
+    const mockStoredConfig: SiteConfig = {
+      _id: "stored-config-123",
+      name: "Cyberbee pro (Persisted)",
+      jobTitles: ["Stored Dev", "Stored Engineer"],
+      statusMessage: "Persisted status message from DB",
+      bioSummary: "Persisted bio summary from DB with extensive verified data.",
+      resumeUrl: "https://drive.google.com/file/d/stored_resume/view",
+      resumeDriveUrl: "https://drive.google.com/file/d/stored_resume/view",
+      pfpUrl: "https://res.cloudinary.com/test/pfp1.jpg",
+      pfpPublicId: "pfp_1",
+      pfpHistory: [
+        {
+          url: "https://res.cloudinary.com/test/pfp1.jpg",
+          publicId: "pfp_1",
+          uploadedAt: "2026-10-01T00:00:00.000Z",
+        },
+        {
+          url: "https://res.cloudinary.com/test/pfp2.jpg",
+          publicId: "pfp_2",
+          uploadedAt: "2026-10-02T00:00:00.000Z",
+        },
+      ],
+    };
+
+    test("buildSetAsPfpPayload uses strictly stored config values without committing draft text inputs", () => {
+      const selectedPfp: PfpItem = {
+        url: "https://res.cloudinary.com/test/pfp2.jpg",
+        publicId: "pfp_2",
+        uploadedAt: "2026-10-02T00:00:00.000Z",
+      };
+
+      const payload = buildSetAsPfpPayload(mockStoredConfig, selectedPfp);
+
+      // Verifies avatar targets are updated
+      assert.strictEqual(payload.pfpUrl, "https://res.cloudinary.com/test/pfp2.jpg");
+      assert.strictEqual(payload.pfpPublicId, "pfp_2");
+
+      // Verifies text fields strictly reflect stored values
+      assert.strictEqual(payload.name, "Cyberbee pro (Persisted)");
+      assert.deepStrictEqual(payload.jobTitles, ["Stored Dev", "Stored Engineer"]);
+      assert.strictEqual(payload.statusMessage, "Persisted status message from DB");
+      assert.strictEqual(payload.bioSummary, "Persisted bio summary from DB with extensive verified data.");
+      assert.strictEqual(payload.resumeUrl, "https://drive.google.com/file/d/stored_resume/view");
+    });
+
+    test("buildUploadPfpFormData bundles strictly stored config values with new avatar file", () => {
+      const fakeFile = new Blob(["fake-image-bytes"], { type: "image/jpeg" });
+      const formData = buildUploadPfpFormData(mockStoredConfig, fakeFile);
+
+      assert.strictEqual(formData.get("name"), "Cyberbee pro (Persisted)");
+      assert.strictEqual(
+        formData.get("jobTitles"),
+        JSON.stringify(["Stored Dev", "Stored Engineer"])
+      );
+      assert.strictEqual(
+        formData.get("statusMessage"),
+        "Persisted status message from DB"
+      );
+      assert.strictEqual(
+        formData.get("bioSummary"),
+        "Persisted bio summary from DB with extensive verified data."
+      );
+      assert.strictEqual(
+        formData.get("resumeUrl"),
+        "https://drive.google.com/file/d/stored_resume/view"
+      );
+      assert.ok(formData.get("pfp") instanceof Blob);
+    });
+
+    test("buildSetAsPfpPayload provides safe fallback defaults when stored config is null", () => {
+      const selectedPfp: PfpItem = {
+        url: "https://res.cloudinary.com/test/pfp_default.jpg",
+        publicId: "pfp_default",
+        uploadedAt: "2026-10-23T00:00:00.000Z",
+      };
+
+      const payload = buildSetAsPfpPayload(null, selectedPfp);
+
+      assert.strictEqual(payload.name, "Cyberbee pro");
+      assert.deepStrictEqual(payload.jobTitles, ["Full-stack dev"]);
+      assert.strictEqual(payload.pfpPublicId, "pfp_default");
+      assert.strictEqual(payload.pfpUrl, "https://res.cloudinary.com/test/pfp_default.jpg");
     });
   });
 });

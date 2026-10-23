@@ -62,6 +62,70 @@ const validateSummary = (val: string): ValidationResult => {
   return { valid: true, message: `ACCEPTED // DOSSIER VERIFIED (${val.length} CHARS)` };
 };
 
+// Helper to build avatar update payload using strictly stored configuration values,
+// completely isolating avatar actions from un-saved draft text edits.
+export function buildSetAsPfpPayload(
+  config: SiteConfig | null,
+  pfpItem: PfpItem
+): UpdateConfigInput {
+  const storedJobs =
+    config?.jobTitles && config.jobTitles.length > 0
+      ? config.jobTitles
+      : ["Full-stack dev"];
+  const storedResume =
+    config?.resumeUrl ||
+    config?.resumeDriveUrl ||
+    "https://drive.google.com/file/d/resume/view";
+
+  return {
+    name: config?.name || "Cyberbee pro",
+    jobTitles: storedJobs,
+    resumeUrl: storedResume,
+    resumeDriveUrl: storedResume,
+    statusMessage:
+      config?.statusMessage || "Limited probabilities Infinite Possibilities",
+    bioSummary:
+      config?.bioSummary ||
+      "Motivated developer with experience in game development, web technologies, and AI research.",
+    pfpPublicId: pfpItem.publicId,
+    pfpUrl: pfpItem.url,
+  };
+}
+
+// Helper to build new avatar upload FormData using strictly stored configuration values,
+// preventing premature commit of un-saved draft text fields.
+export function buildUploadPfpFormData(
+  config: SiteConfig | null,
+  file: File | Blob
+): FormData {
+  const storedJobs =
+    config?.jobTitles && config.jobTitles.length > 0
+      ? config.jobTitles
+      : ["Full-stack dev"];
+  const storedResume =
+    config?.resumeUrl ||
+    config?.resumeDriveUrl ||
+    "https://drive.google.com/file/d/resume/view";
+
+  const formData = new FormData();
+  formData.append("pfp", file);
+  formData.append("name", config?.name || "Cyberbee pro");
+  formData.append("jobTitles", JSON.stringify(storedJobs));
+  formData.append("resumeUrl", storedResume);
+  formData.append("resumeDriveUrl", storedResume);
+  formData.append(
+    "statusMessage",
+    config?.statusMessage || "Limited probabilities Infinite Possibilities"
+  );
+  formData.append(
+    "bioSummary",
+    config?.bioSummary ||
+      "Motivated developer with experience in game development, web technologies, and AI research."
+  );
+
+  return formData;
+}
+
 export default function AdminConfigPage() {
   const [, startTransition] = useTransition();
 
@@ -90,8 +154,8 @@ export default function AdminConfigPage() {
     message: string;
   } | null>(null);
 
-  // Fetch configuration on component mount
-  const loadConfigData = async () => {
+  // Reset / reload configuration from API
+  const handleReset = async () => {
     setIsLoading(true);
     try {
       const res = await getConfig();
@@ -117,19 +181,59 @@ export default function AdminConfigPage() {
       }
     } catch (err: unknown) {
       console.warn("[AdminConfigPage] Failed to fetch config from API:", err);
-      // Fallback defaults for graceful initial rendering
-      setName("Cyberbee pro");
-      setJobTitlesStr("Full-stack dev / Game dev / Low Level dev");
-      setBio("Limited probabilities Infinite Possibilities");
-      setResumeUrl("https://drive.google.com/file/d/resume/view");
-      setSummary("Motivated developer with experience in game development, web technologies, and AI research.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const loadConfigData = handleReset;
+
+  // Fetch configuration on component mount
   useEffect(() => {
-    loadConfigData();
+    let ignore = false;
+    getConfig()
+      .then((res) => {
+        if (!ignore && res?.data) {
+          const d = res.data;
+          setConfig(d);
+          setName(d.name || "Cyberbee pro");
+          setJobTitlesStr(
+            d.jobTitles && d.jobTitles.length > 0
+              ? d.jobTitles.join(" / ")
+              : "Full-stack dev / Game dev / Low Level dev"
+          );
+          setBio(d.statusMessage || "Limited probabilities Infinite Possibilities");
+          const existingResume = d.resumeUrl || d.resumeDriveUrl || "";
+          setResumeUrl(existingResume || "https://drive.google.com/file/d/resume/view");
+          setSummary(
+            d.bioSummary ||
+              "Motivated developer with experience in game development, web technologies, and AI research. Skilled in JavaScript, TypeScript, C, C++, Java, Python, React, Next.js, Node.js, NumPy, Pandas, Blender, GitHub, and Figma."
+          );
+          setPfpUrl(d.pfpUrl);
+          setPfpHistory(d.pfpHistory || []);
+          setSelectedResumeFile(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!ignore) {
+          console.warn("[AdminConfigPage] Failed to fetch config from API:", err);
+          // Fallback defaults for graceful initial rendering
+          setName("Cyberbee pro");
+          setJobTitlesStr("Full-stack dev / Game dev / Low Level dev");
+          setBio("Limited probabilities Infinite Possibilities");
+          setResumeUrl("https://drive.google.com/file/d/resume/view");
+          setSummary("Motivated developer with experience in game development, web technologies, and AI research.");
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   // Save changes to backend via PUT /api/v1/config (and conditional multipart resume upload)
@@ -213,21 +317,9 @@ export default function AdminConfigPage() {
     setIsSaving(true);
     setFeedback(null);
     try {
-      const parsedJobs = jobTitlesStr
-        .split(/[\/,]+/)
-        .map((j) => j.trim())
-        .filter(Boolean);
-
-      const res = await updateConfig({
-        name: name.trim() || config?.name || "Cyberbee pro",
-        jobTitles: parsedJobs.length > 0 ? parsedJobs : (config?.jobTitles || ["Full-stack dev"]),
-        resumeUrl: resumeUrl.trim() || config?.resumeUrl || config?.resumeDriveUrl || "https://drive.google.com/file/d/resume/view",
-        resumeDriveUrl: resumeUrl.trim() || config?.resumeDriveUrl || config?.resumeUrl,
-        statusMessage: bio.trim() || config?.statusMessage || "Available",
-        bioSummary: summary.trim() || config?.bioSummary || "Bio summary",
-        pfpPublicId: pfpItem.publicId,
-        pfpUrl: pfpItem.url,
-      });
+      // Build payload strictly from stored config to avoid committing un-saved form drafts
+      const payload = buildSetAsPfpPayload(config, pfpItem);
+      const res = await updateConfig(payload);
 
       if (res?.data) {
         setConfig(res.data);
@@ -255,31 +347,8 @@ export default function AdminConfigPage() {
     setIsSaving(true);
     setFeedback(null);
     try {
-      const parsedJobs = jobTitlesStr
-        .split(/[\/,]+/)
-        .map((j) => j.trim())
-        .filter(Boolean);
-
-      const formData = new FormData();
-      formData.append("pfp", file);
-      formData.append("name", name.trim() || config?.name || "Cyberbee pro");
-      formData.append(
-        "jobTitles",
-        JSON.stringify(parsedJobs.length > 0 ? parsedJobs : (config?.jobTitles || ["Full-stack dev"]))
-      );
-      formData.append(
-        "resumeUrl",
-        resumeUrl.trim() || config?.resumeUrl || config?.resumeDriveUrl || "https://drive.google.com/file/d/resume/view"
-      );
-      formData.append(
-        "statusMessage",
-        bio.trim() || config?.statusMessage || "Available"
-      );
-      formData.append(
-        "bioSummary",
-        summary.trim() || config?.bioSummary || "Bio summary"
-      );
-
+      // Build FormData strictly from stored config to avoid committing un-saved form drafts
+      const formData = buildUploadPfpFormData(config, file);
       const res = await updateConfig(formData);
       if (res?.data) {
         setConfig(res.data);

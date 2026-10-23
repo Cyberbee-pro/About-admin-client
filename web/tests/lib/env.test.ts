@@ -107,10 +107,13 @@ describe("Strict Environment Validation", () => {
     assert.strictEqual(getAdminSecret(), "test-admin-secret-123");
   });
 
-  test("getAdminSecret falls back to NEXT_PUBLIC_ADMIN_SECRET when ADMIN_SECRET is unset", () => {
+  test("getAdminSecret strictly does not fall back to NEXT_PUBLIC_ADMIN_SECRET when ADMIN_SECRET is unset", () => {
     delete process.env.ADMIN_SECRET;
     process.env.NEXT_PUBLIC_ADMIN_SECRET = "  test-public-admin-secret-456  ";
-    assert.strictEqual(getAdminSecret(), "test-public-admin-secret-456");
+    assert.throws(() => getAdminSecret(), {
+      name: "ConfigurationError",
+      code: "ERR_ENV_MISSING_ADMIN_SECRET",
+    });
   });
 
   test("getAdminSecret strictly throws ERR_ENV_MISSING_ADMIN_SECRET when both are unset", () => {

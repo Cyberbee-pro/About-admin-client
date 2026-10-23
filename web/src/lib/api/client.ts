@@ -19,7 +19,8 @@ export interface RequestOptions {
   params?: Record<string, string | number | boolean | undefined | null>;
   body?: unknown;
   /**
-   * If true, automatically injects the server-side ADMIN_SECRET into the Authorization Bearer header.
+   * If true, automatically injects the server-side ADMIN_SECRET into the Authorization Bearer header
+   * on server-side requests, or routes through the secure Next.js server proxy on client-side requests.
    * Can also be a custom bearer token string.
    */
   auth?: boolean | string;
@@ -52,21 +53,37 @@ function buildQueryString(params?: Record<string, string | number | boolean | un
  * Core HTTP fetch wrapper for communicating with the about-core backend.
  */
 export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const baseUrl = getApiUrl();
+  const isClient = typeof window !== "undefined";
+  const needsAdminAuth = options.auth === true;
+
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const queryString = buildQueryString(options.params);
-  const fullUrl = `${baseUrl.replace(/\/+$/, "")}${cleanEndpoint}${queryString}`;
+
+  let fullUrl: string;
+
+  if (isClient && needsAdminAuth) {
+    // In the browser, proxy admin-authenticated requests securely through Next.js server-side
+    // route handlers that inject ADMIN_SECRET on the server, keeping credentials out of client code.
+    const proxyPrefix = cleanEndpoint.startsWith("/api/admin") ? "" : "/api/admin";
+    fullUrl = `${proxyPrefix}${cleanEndpoint}${queryString}`;
+  } else {
+    const baseUrl = getApiUrl();
+    fullUrl = `${baseUrl.replace(/\/+$/, "")}${cleanEndpoint}${queryString}`;
+  }
 
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...options.headers,
   };
 
-  // Auth header injection
+  // Auth header injection:
+  // - Custom bearer token: passed on both client and server.
+  // - Admin secret (auth: true): injected ONLY on the server side.
+  // In the browser, session credentials (HTTP-only cookies) authenticate requests to the Next.js proxy.
   if (options.auth) {
     if (typeof options.auth === "string") {
       headers["Authorization"] = `Bearer ${options.auth}`;
-    } else {
+    } else if (!isClient) {
       const adminSecret = getAdminSecret();
       headers["Authorization"] = `Bearer ${adminSecret}`;
     }
@@ -100,12 +117,18 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
         : options.signal)
     : timeoutSignal;
 
-  const response = await fetch(fullUrl, {
+  const fetchOptions: RequestInit = {
     method: options.method || "GET",
     headers,
     body: requestBody,
     signal,
-  });
+  };
+
+  if (isClient && needsAdminAuth) {
+    fetchOptions.credentials = "same-origin";
+  }
+
+  const response = await fetch(fullUrl, fetchOptions);
 
   const contentType = response.headers.get("content-type");
   const isJson = contentType && contentType.includes("application/json");
