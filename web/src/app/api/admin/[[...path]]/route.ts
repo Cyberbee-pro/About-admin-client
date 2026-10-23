@@ -53,10 +53,26 @@ async function handleAdminProxy(
       );
     }
 
+    for (const segment of pathSegments) {
+      if (segment === "." || segment === "..") {
+        return NextResponse.json(
+          {
+            title: "Bad Request",
+            status: 400,
+            detail: "Path traversal segments '.' and '..' are prohibited.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment));
+    const encodedPath = encodedSegments.join("/");
+
     // Normalize downstream path: ensure leading /api/v1 prefix
     const subPath = pathSegments[0] === "api"
-      ? `/${pathSegments.join("/")}`
-      : `/api/${pathSegments.join("/")}`;
+      ? `/${encodedPath}`
+      : `/api/${encodedPath}`;
 
     const url = new URL(request.url);
     const search = url.search || "";
@@ -103,7 +119,12 @@ async function handleAdminProxy(
       resHeaders.set("Content-Type", resContentType);
     }
 
-    return new NextResponse(resBuffer, {
+    const isNoContent =
+      response.status === 204 ||
+      response.status === 205 ||
+      response.status === 304;
+
+    return new NextResponse(isNoContent ? null : resBuffer, {
       status: response.status,
       headers: resHeaders,
     });

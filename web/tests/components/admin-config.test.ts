@@ -6,6 +6,7 @@ import { ConfigInput } from "@/app/admin/config/components/ConfigInput";
 import { ConfigResumeCard } from "@/app/admin/config/components/ConfigResumeCard";
 import { ConfigAvatarCard } from "@/app/admin/config/components/ConfigAvatarCard";
 import { ConfigPfpCard } from "@/app/admin/config/components/ConfigPfpCard";
+import { PdfViewer } from "@/components/PdfViewer";
 import AdminConfigPage, {
   buildSetAsPfpPayload,
   buildUploadPfpFormData,
@@ -141,7 +142,7 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(html.includes('aria-label="Download Resume"'), "Must include download trigger");
       assert.ok(html.includes('aria-label="Open Resume in new tab"'), "Must include external link trigger");
       assert.ok(html.includes(`href="${resumeUrl}"`), "External link must target resumeUrl");
-      assert.ok(html.includes("SHIBRAJ DAS"), "Must render document preview sheet");
+      assert.ok(html.includes('data-testid="pdf-viewer-container"'), "Must render PdfViewer container");
     });
 
     test("renders staged badge when stagedFileName is provided", () => {
@@ -156,6 +157,74 @@ describe("Admin Config Page & Form Mechanics", () => {
 
       assert.ok(html.includes("STAGED: my_cv.pdf"), "Must display staged badge");
       assert.ok(html.includes('data-testid="resume-staged-badge"'), "Must include testid");
+    });
+
+    test("renders read-only mode without editing options when editable is false", () => {
+      const resumeUrl = "https://drive.google.com/file/d/test_resume/view";
+      const html = renderToString(
+        React.createElement(ConfigResumeCard, {
+          resumeUrl,
+          editable: false,
+        })
+      );
+
+      assert.ok(html.includes("Resume.pdf"), "Must display Resume.pdf title");
+      assert.ok(html.includes('aria-label="Download Resume"'), "Must include download trigger");
+      assert.ok(html.includes('aria-label="Open Resume in new tab"'), "Must include external link trigger");
+      assert.ok(html.includes('data-testid="pdf-viewer-container"'), "Must render PdfViewer container");
+      assert.ok(!html.includes('aria-label="Upload Resume"'), "Must NOT include upload trigger");
+      assert.ok(!html.includes("[EDIT URL]"), "Must NOT include [EDIT URL] action");
+      assert.ok(!html.includes('type="file"'), "Must NOT include file input");
+    });
+
+    test("applies compact previewHeight correctly to PdfViewer", () => {
+      const resumeUrl = "https://drive.google.com/file/d/test_resume/view";
+      const html = renderToString(
+        React.createElement(ConfigResumeCard, {
+          resumeUrl,
+          previewHeight: "210px",
+        })
+      );
+
+      assert.ok(html.includes("height:210px"), "Must apply 210px height to viewer container");
+    });
+  });
+
+  describe("PdfViewer Component", () => {
+    test("renders scrollable container with 450px fixed height and overflow-y: auto", () => {
+      const html = renderToString(
+        React.createElement(PdfViewer, {
+          fileUrl: "https://example.com/sample.pdf",
+        })
+      );
+
+      assert.ok(html.includes('data-testid="pdf-viewer-container"'), "Must render viewer container");
+      assert.ok(html.includes("height:450px"), "Must have fixed height of 450px");
+      assert.ok(html.includes("overflow-y:auto") || html.includes("overflow-y: auto"), "Must have overflowY: auto");
+      assert.ok(html.includes("rpv-core__viewer"), "Must render @react-pdf-viewer core viewer markup");
+    });
+
+    test("renders standby placeholder when fileUrl is empty or blank", () => {
+      const html = renderToString(
+        React.createElement(PdfViewer, {
+          fileUrl: "",
+        })
+      );
+
+      assert.ok(html.includes('data-testid="pdf-viewer-container"'), "Must render container");
+      assert.ok(html.includes("NO PDF DOCUMENT LOADED"), "Must display fallback standby message");
+      assert.ok(html.includes("height:450px"), "Must maintain 450px container height");
+    });
+
+    test("supports custom height prop override", () => {
+      const html = renderToString(
+        React.createElement(PdfViewer, {
+          fileUrl: "https://example.com/sample.pdf",
+          height: "500px",
+        })
+      );
+
+      assert.ok(html.includes("height:500px"), "Must respect custom height prop");
     });
   });
 
@@ -207,6 +276,32 @@ describe("Admin Config Page & Form Mechanics", () => {
 
       assert.ok(html.includes('src="https://res.cloudinary.com/test/valid-pfp.png"'), "Must render valid pfp image");
       assert.strictEqual(html.includes("No pfp in db"), false, "Must not display 'No pfp in db' placeholder");
+    });
+
+    test("synchronizes active avatar from pfpHistory on initial render", () => {
+      const history = [
+        { url: "https://res.cloudinary.com/test/first.jpg", publicId: "first_id", uploadedAt: "2026-01-01T00:00:00Z" },
+        { url: "https://res.cloudinary.com/test/second.jpg", publicId: "second_id", uploadedAt: "2026-01-02T00:00:00Z" },
+        { url: "https://res.cloudinary.com/test/active.jpg", publicId: "active_id", uploadedAt: "2026-01-03T00:00:00Z" },
+      ];
+
+      const html = renderToString(
+        React.createElement(ConfigAvatarCard, {
+          pfpUrl: "https://res.cloudinary.com/test/active.jpg",
+          pfpHistory: history,
+          onSetAsPfp: () => {},
+          onUploadNewPfp: () => {},
+        })
+      );
+
+      assert.ok(
+        html.includes('src="https://res.cloudinary.com/test/active.jpg"'),
+        "Must synchronize and display the active avatar on initial render"
+      );
+      assert.ok(
+        html.includes("active.jpg"),
+        "Must display the active avatar's filename label on initial render"
+      );
     });
 
     test("ConfigPfpCard alias renders 'No pfp in db' when pfpUrl is undefined", () => {

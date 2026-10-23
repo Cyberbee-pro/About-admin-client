@@ -81,6 +81,19 @@ describe("Admin Components & Overview Modules", () => {
         "Footer must not contain fabricated corner bracket decorations"
       );
     });
+
+    test("renders fixed height 100vh without adjusting to content", () => {
+      const html = renderToString(React.createElement(AdminSidebar));
+
+      assert.ok(
+        html.includes("h-[100vh]") || html.includes("height:100vh") || html.includes("height: 100vh"),
+        "Sidebar must have fixed 100vh height"
+      );
+      assert.ok(
+        !html.includes("min-h-screen"),
+        "Sidebar must not use min-h-screen which adjusts to content"
+      );
+    });
   });
 
   describe("HeaderTitle Component", () => {
@@ -289,6 +302,20 @@ describe("Admin Components & Overview Modules", () => {
       assert.ok(html.includes("download_butt.svg"), "Must include download_butt.svg icon");
       assert.ok(html.includes(`href="${driveUrl}"`), "Button must link to resumeDriveUrl");
       assert.ok(html.includes('target="_blank"'), "Must open in new tab");
+    });
+
+    test("renders PdfViewer without editing options with compact height", () => {
+      const driveUrl = "https://drive.google.com/file/d/resume_123/view";
+      const html = renderToString(
+        React.createElement(ResumePreviewCard, {
+          resumeDriveUrl: driveUrl,
+        })
+      );
+
+      assert.ok(html.includes('data-testid="pdf-viewer-container"'), "Must render PdfViewer container");
+      assert.ok(html.includes("height:230px"), "Must have compact 230px height");
+      assert.ok(!html.includes('aria-label="Upload Resume"'), "Must NOT include upload option");
+      assert.ok(!html.includes("[EDIT URL]"), "Must NOT include editable URL option");
     });
   });
 
