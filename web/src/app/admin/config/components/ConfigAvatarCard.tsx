@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { PfpItem } from "@/lib/api/types";
 
 export interface ConfigAvatarCardProps {
   currentPfpUrl?: string;
+  pfpUrl?: string;
   pfpHistory?: PfpItem[];
   onSetAsPfp: (pfpItem: PfpItem) => Promise<void> | void;
   onUploadNewPfp: (file: File) => Promise<void> | void;
@@ -14,6 +15,7 @@ export interface ConfigAvatarCardProps {
 
 export function ConfigAvatarCard({
   currentPfpUrl,
+  pfpUrl,
   pfpHistory = [],
   onSetAsPfp,
   onUploadNewPfp,
@@ -23,32 +25,50 @@ export function ConfigAvatarCard({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isSettingPfp, setIsSettingPfp] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [brokenUrls, setBrokenUrls] = useState<Record<string, boolean>>({});
+
+  const activePfpUrl = pfpUrl !== undefined ? pfpUrl : currentPfpUrl;
+  const hasValidPfp = Boolean(activePfpUrl && activePfpUrl.trim() !== "");
 
   // Synthesize history list if empty or single item
   const displayList: PfpItem[] =
     pfpHistory.length > 0
       ? pfpHistory
-      : currentPfpUrl
-      ? [{ url: currentPfpUrl, publicId: "default_active", uploadedAt: new Date().toISOString() }]
+      : hasValidPfp
+      ? [
+          {
+            url: activePfpUrl!.trim(),
+            publicId: "default_active",
+            uploadedAt: new Date().toISOString(),
+          },
+        ]
       : [
           {
-            url: "/eva dash/eva no back.png",
+            url: "",
             publicId: "pfp1",
             uploadedAt: new Date().toISOString(),
           },
         ];
 
-  // Sync selected index when pfpHistory or currentPfpUrl updates
-  useEffect(() => {
-    if (currentPfpUrl) {
-      const idx = displayList.findIndex((item) => item.url === currentPfpUrl);
+  // Adjust selectedIndex when activePfpUrl updates without cascading renders
+  const [prevActiveUrl, setPrevActiveUrl] = useState(activePfpUrl);
+  if (activePfpUrl !== prevActiveUrl) {
+    setPrevActiveUrl(activePfpUrl);
+    if (activePfpUrl) {
+      const idx = displayList.findIndex((item) => item.url === activePfpUrl);
       if (idx !== -1) {
         setSelectedIndex(idx);
       }
     }
-  }, [currentPfpUrl, displayList.length]);
+  }
 
   const currentItem = displayList[selectedIndex] || displayList[0];
+  const hasDisplayUrl = Boolean(
+    currentItem?.url &&
+      currentItem.url.trim() !== "" &&
+      currentItem.url !== "/eva dash/eva no back.png" &&
+      !brokenUrls[currentItem.url]
+  );
 
   const handlePrev = () => {
     setSelectedIndex((prev) => (prev - 1 + displayList.length) % displayList.length);
@@ -118,50 +138,31 @@ export function ConfigAvatarCard({
         />
 
         {/* Inner Content Area Inset cleanly */}
-        <div className="absolute top-[6.5%] left-[7%] w-[78%] h-[80%] bg-white z-0 overflow-hidden flex items-center justify-center">
+        <div className="absolute top-[6.5%] left-[7%] w-[78%] h-[80%] bg-[#12121b] z-0 overflow-hidden flex items-center justify-center">
           {isUploading ? (
-            <div className="flex flex-col items-center gap-2 text-black/70 font-mono text-xs">
-              <span className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+            <div className="flex flex-col items-center gap-2 text-white/70 font-mono text-xs">
+              <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               <span>TRANSMITTING...</span>
             </div>
-          ) : currentItem?.url && currentItem.url !== "/eva dash/eva no back.png" ? (
+          ) : hasDisplayUrl ? (
             <img
               src={currentItem.url}
               alt="Pilot Avatar"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                // Fallback to stylized SVG if external image fails
-                (e.currentTarget as HTMLElement).style.display = "none";
+              onError={() => {
+                if (currentItem?.url) {
+                  setBrokenUrls((prev) => ({ ...prev, [currentItem.url]: true }));
+                }
               }}
             />
           ) : (
-            /* Manga Character Line Art matching uploaded screenshot */
-            <div className="w-full h-full bg-white flex flex-col items-center justify-center relative p-3">
-              <svg
-                className="w-full h-full text-black"
-                viewBox="0 0 100 100"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path
-                  d="M50 15 C38 15 28 26 28 40 C28 50 33 58 40 64 L40 76 L60 76 L60 64 C67 58 72 50 72 40 C72 26 62 15 50 15 Z"
-                  fill="none"
-                />
-                <path d="M35 38 Q42 34 48 38" stroke="currentColor" strokeWidth="2.5" />
-                <path d="M52 38 Q58 34 65 38" stroke="currentColor" strokeWidth="2.5" />
-                <circle cx="43" cy="45" r="3.5" fill="black" />
-                <circle cx="57" cy="45" r="3.5" fill="black" />
-                <path d="M47 52 L50 56 L53 52" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M42 63 Q50 67 58 63" stroke="currentColor" strokeWidth="2" />
-                <path
-                  d="M28 35 Q20 25 32 18 Q38 10 50 12 Q62 10 68 18 Q80 25 72 35"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                />
-                <path d="M20 78 L80 78 L85 95 L15 95 Z" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M36 70 L26 88 M64 70 L74 88" stroke="currentColor" strokeWidth="2.5" />
-              </svg>
+            <div
+              className="w-full h-full bg-[#12121b] flex flex-col items-center justify-center p-3 text-center select-none"
+              data-testid="no-pfp-placeholder"
+            >
+              <span className="font-mono text-xs text-eva-text-muted tracking-wider">
+                No pfp in db
+              </span>
             </div>
           )}
         </div>
@@ -260,4 +261,5 @@ export function ConfigAvatarCard({
   );
 }
 
+export const ConfigPfpCard = ConfigAvatarCard;
 export default ConfigAvatarCard;

@@ -5,6 +5,7 @@ import { renderToString } from "react-dom/server";
 import { ConfigInput } from "@/app/admin/config/components/ConfigInput";
 import { ConfigResumeCard } from "@/app/admin/config/components/ConfigResumeCard";
 import { ConfigAvatarCard } from "@/app/admin/config/components/ConfigAvatarCard";
+import { ConfigPfpCard } from "@/app/admin/config/components/ConfigPfpCard";
 import AdminConfigPage, {
   buildSetAsPfpPayload,
   buildUploadPfpFormData,
@@ -176,6 +177,47 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(html.includes('aria-label="Download Current Avatar"'), "Must include avatar download button");
       assert.ok(html.includes("Set as pfp"), "Must render Set as pfp action button");
       assert.ok(html.includes("bg-[#0044cc]"), "Must style Set as pfp with distinctive blue theme");
+      assert.ok(html.includes('src="https://res.cloudinary.com/test/pfp.jpg"'), "Must render avatar image tag");
+      assert.strictEqual(html.includes("No pfp in db"), false, "Must not display placeholder when valid pfpUrl exists");
+    });
+
+    test("renders 'No pfp in db' with mono muted styling when pfpUrl is empty or falsy", () => {
+      const html = renderToString(
+        React.createElement(ConfigAvatarCard, {
+          pfpUrl: "",
+          onSetAsPfp: () => {},
+          onUploadNewPfp: () => {},
+        })
+      );
+
+      assert.ok(html.includes("No pfp in db"), "Must display 'No pfp in db' text when pfpUrl is empty string");
+      assert.ok(html.includes("font-mono"), "Must style placeholder with font-mono");
+      assert.ok(html.includes("text-eva-text-muted"), "Must use muted text color");
+      assert.strictEqual(html.includes('alt="Pilot Avatar"'), false, "Must not render avatar img tag when pfpUrl is empty");
+    });
+
+    test("renders valid avatar image normally when pfpUrl is present without interference", () => {
+      const html = renderToString(
+        React.createElement(ConfigAvatarCard, {
+          pfpUrl: "https://res.cloudinary.com/test/valid-pfp.png",
+          onSetAsPfp: () => {},
+          onUploadNewPfp: () => {},
+        })
+      );
+
+      assert.ok(html.includes('src="https://res.cloudinary.com/test/valid-pfp.png"'), "Must render valid pfp image");
+      assert.strictEqual(html.includes("No pfp in db"), false, "Must not display 'No pfp in db' placeholder");
+    });
+
+    test("ConfigPfpCard alias renders 'No pfp in db' when pfpUrl is undefined", () => {
+      const html = renderToString(
+        React.createElement(ConfigPfpCard, {
+          onSetAsPfp: () => {},
+          onUploadNewPfp: () => {},
+        })
+      );
+
+      assert.ok(html.includes("No pfp in db"), "Must display 'No pfp in db' via ConfigPfpCard alias");
     });
   });
 

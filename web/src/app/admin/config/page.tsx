@@ -561,6 +561,7 @@ export default function AdminConfigPage() {
           {/* Right Column: Framed Avatar with Carousel & Set as PFP Button (span 4) */}
           <div className="lg:col-span-4 flex flex-col items-center lg:items-end w-full">
             <ConfigAvatarCard
+              pfpUrl={pfpUrl}
               currentPfpUrl={pfpUrl}
               pfpHistory={pfpHistory}
               onSetAsPfp={handleSetAsPfp}
