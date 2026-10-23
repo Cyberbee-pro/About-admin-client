@@ -7,6 +7,7 @@ import {
   isConfigurationError,
   toEnvErrorResponse,
   getApiUrl,
+  getAdminSecret,
 } from "@/lib/env";
 
 describe("Strict Environment Validation", () => {
@@ -97,6 +98,30 @@ describe("Strict Environment Validation", () => {
     assert.throws(() => getApiUrl(), {
       name: "ConfigurationError",
       code: "ERR_ENV_MISSING_NEXT_PUBLIC_API_URL",
+    });
+  });
+
+  test("getAdminSecret returns ADMIN_SECRET when present", () => {
+    delete process.env.NEXT_PUBLIC_ADMIN_SECRET;
+    process.env.ADMIN_SECRET = "  test-admin-secret-123  ";
+    assert.strictEqual(getAdminSecret(), "test-admin-secret-123");
+  });
+
+  test("getAdminSecret strictly does not fall back to NEXT_PUBLIC_ADMIN_SECRET when ADMIN_SECRET is unset", () => {
+    delete process.env.ADMIN_SECRET;
+    process.env.NEXT_PUBLIC_ADMIN_SECRET = "  test-public-admin-secret-456  ";
+    assert.throws(() => getAdminSecret(), {
+      name: "ConfigurationError",
+      code: "ERR_ENV_MISSING_ADMIN_SECRET",
+    });
+  });
+
+  test("getAdminSecret strictly throws ERR_ENV_MISSING_ADMIN_SECRET when both are unset", () => {
+    delete process.env.ADMIN_SECRET;
+    delete process.env.NEXT_PUBLIC_ADMIN_SECRET;
+    assert.throws(() => getAdminSecret(), {
+      name: "ConfigurationError",
+      code: "ERR_ENV_MISSING_ADMIN_SECRET",
     });
   });
 });

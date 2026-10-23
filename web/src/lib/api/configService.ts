@@ -17,7 +17,7 @@ export async function getConfig(): Promise<ApiResponse<SiteConfig>> {
  * Requires admin authentication.
  */
 export async function updateConfig(
-  data: UpdateConfigInput,
+  data: UpdateConfigInput | FormData,
   options?: ServiceAuthOption
 ): Promise<ApiResponse<SiteConfig>> {
   return apiClient<ApiResponse<SiteConfig>>("/api/v1/config", {
@@ -26,3 +26,29 @@ export async function updateConfig(
     auth: options?.adminToken || true,
   });
 }
+
+/**
+ * Uploads a resume PDF file directly to /api/v1/config/resume.
+ * Supports File or FormData (with field name 'resume', 'resumeFile', 'resumePdf', or 'pdf').
+ * Requires admin authentication.
+ */
+export async function uploadResumeFile(
+  file: File | FormData,
+  options?: ServiceAuthOption
+): Promise<ApiResponse<SiteConfig>> {
+  let body: FormData;
+  if (typeof FormData !== "undefined" && file instanceof FormData) {
+    body = file;
+  } else {
+    body = new FormData();
+    body.append("resume", file as File);
+  }
+
+  return apiClient<ApiResponse<SiteConfig>>("/api/v1/config/resume", {
+    method: "POST",
+    body,
+    auth: options?.adminToken || true,
+  });
+}
+
+export const uploadResume = uploadResumeFile;

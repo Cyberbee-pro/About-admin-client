@@ -9,7 +9,7 @@ import {
   deleteProject,
   appendProjectVersion,
 } from "@/lib/api/projectService";
-import { getConfig, updateConfig } from "@/lib/api/configService";
+import { getConfig, updateConfig, uploadResumeFile } from "@/lib/api/configService";
 import { getLogs } from "@/lib/api/logService";
 
 describe("API Service Modules", () => {
@@ -233,6 +233,41 @@ describe("API Service Modules", () => {
       assert.strictEqual(capturedUrl, "https://api.about.example.com/api/v1/config");
       assert.strictEqual(capturedMethod, "PUT");
       assert.strictEqual(capturedHeaders["Authorization"], "Bearer mock-backend-secret");
+    });
+
+    test("uploadResumeFile calls POST /api/v1/config/resume with admin auth and FormData", async () => {
+      let capturedUrl = "";
+      let capturedMethod = "";
+      let capturedHeaders: Record<string, string> = {};
+      let capturedBody: unknown;
+
+      global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        capturedUrl = String(input);
+        capturedMethod = init?.method || "";
+        capturedHeaders = (init?.headers || {}) as Record<string, string>;
+        capturedBody = init?.body;
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Resume uploaded successfully",
+            data: { resumeUrl: "https://res.cloudinary.com/demo/resume.pdf" },
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }) as typeof fetch;
+
+      const formData = new FormData();
+      formData.append("resume", new Blob(["%PDF-1.4 mock content"], { type: "application/pdf" }), "resume.pdf");
+
+      const res = await uploadResumeFile(formData);
+      assert.strictEqual(capturedUrl, "https://api.about.example.com/api/v1/config/resume");
+      assert.strictEqual(capturedMethod, "POST");
+      assert.strictEqual(capturedHeaders["Authorization"], "Bearer mock-backend-secret");
+      assert.ok(capturedBody instanceof FormData);
+      assert.strictEqual(res.data.resumeUrl, "https://res.cloudinary.com/demo/resume.pdf");
     });
   });
 

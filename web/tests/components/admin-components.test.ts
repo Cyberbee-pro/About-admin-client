@@ -255,6 +255,25 @@ describe("Admin Components & Overview Modules", () => {
         html.includes('src="https://res.cloudinary.com/test/pfp.jpg"'),
         "Must render profile picture image URL"
       );
+      assert.strictEqual(
+        html.includes("No pfp in db"),
+        false,
+        "Must not show 'No pfp in db' placeholder when valid pfpUrl exists"
+      );
+    });
+
+    test("displays 'No pfp in db' with mono muted styling when pfpUrl is empty", () => {
+      const html = renderToString(
+        React.createElement(ProfileAvatarCard, {
+          pfpUrl: "",
+          name: "Cyberbee",
+        })
+      );
+
+      assert.ok(html.includes("No pfp in db"), "Must display 'No pfp in db' text when pfpUrl is empty");
+      assert.ok(html.includes("font-mono"), "Must style placeholder with font-mono");
+      assert.ok(html.includes("text-eva-text-muted"), "Must style placeholder with muted text");
+      assert.strictEqual(html.includes('alt="Cyberbee"'), false, "Must not render avatar img tag when pfpUrl is empty");
     });
   });
 

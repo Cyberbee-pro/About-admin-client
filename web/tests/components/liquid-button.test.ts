@@ -218,5 +218,28 @@ describe("LiquidButton Component", () => {
     assert.ok(htmlActive.includes("bottom: 115%"), "Must rise based on container height using bottom percentages");
     assert.ok(htmlActive.includes("prefers-reduced-motion: reduce"), "Must support prefers-reduced-motion accessibility");
   });
+
+  test("defines liquidRiseFill animation and supports after-click fill and stayActiveOnClick", () => {
+    const html = renderToString(
+      React.createElement(
+        LiquidButton,
+        {
+          stayActiveOnClick: true,
+          liquidColor: "bg-eva-lime",
+          activeColor: "bg-eva-red",
+        },
+        "Click & Stay"
+      )
+    );
+
+    // Verify keyframe definition for red liquid fill rising over green
+    assert.ok(html.includes("@keyframes liquidRiseFill"), "Must define liquidRiseFill keyframes");
+    assert.ok(html.includes("transform: translateY(100%)"), "liquidRiseFill must start from bottom 100%");
+    assert.ok(html.includes("transform: translateY(0)"), "liquidRiseFill must finish at top 0%");
+
+    // Verify hover green liquid layer is present
+    assert.ok(html.includes("bg-eva-lime"), "Must render hover green liquid layer");
+    assert.ok(html.includes("translate-y-full"), "Hover green liquid starts translated for hover entry");
+  });
 });
 

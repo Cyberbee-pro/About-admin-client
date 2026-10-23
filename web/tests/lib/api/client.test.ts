@@ -148,4 +148,72 @@ describe("Shared API Client", () => {
     assert.ok(capturedSignal instanceof AbortSignal);
     assert.strictEqual(capturedSignal.aborted, false);
   });
+
+  describe("Browser Client-Side Proxying & Credential Security", () => {
+    afterEach(() => {
+      // @ts-expect-error Mock cleanup
+      delete globalThis.window;
+    });
+
+    test("in browser: proxies admin-authenticated request through /api/admin without exposing ADMIN_SECRET", async () => {
+      // Emulate browser runtime
+      // @ts-expect-error Mock window
+      globalThis.window = {};
+
+      // Even if ADMIN_SECRET is completely absent in client environment, client calls must not fail
+      delete process.env.ADMIN_SECRET;
+
+      let capturedUrl = "";
+      let capturedHeaders: Record<string, string> = {};
+      let capturedCredentials: RequestCredentials | undefined;
+
+      global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        capturedUrl = String(input);
+        capturedHeaders = (init?.headers || {}) as Record<string, string>;
+        capturedCredentials = init?.credentials;
+        return new Response(JSON.stringify({ success: true, data: {} }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }) as typeof fetch;
+
+      await apiClient("/api/v1/config", {
+        method: "PUT",
+        body: { name: "Test" },
+        auth: true,
+      });
+
+      // Must be routed to Next.js server proxy route
+      assert.strictEqual(capturedUrl, "/api/admin/api/v1/config");
+      // Must include same-origin credentials for session cookie authentication
+      assert.strictEqual(capturedCredentials, "same-origin");
+      // Must NOT leak backend ADMIN_SECRET in Authorization header
+      assert.strictEqual(capturedHeaders["Authorization"], undefined);
+    });
+
+    test("in browser: public requests route to NEXT_PUBLIC_API_URL without proxy or auth", async () => {
+      // @ts-expect-error Mock window
+      globalThis.window = {};
+
+      let capturedUrl = "";
+      let capturedHeaders: Record<string, string> = {};
+      let capturedCredentials: RequestCredentials | undefined;
+
+      global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        capturedUrl = String(input);
+        capturedHeaders = (init?.headers || {}) as Record<string, string>;
+        capturedCredentials = init?.credentials;
+        return new Response(JSON.stringify({ success: true, data: {} }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }) as typeof fetch;
+
+      await apiClient("/api/v1/health");
+
+      assert.strictEqual(capturedUrl, "https://api.about.example.com/api/v1/health");
+      assert.strictEqual(capturedCredentials, undefined);
+      assert.strictEqual(capturedHeaders["Authorization"], undefined);
+    });
+  });
 });

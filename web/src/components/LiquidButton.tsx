@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 export interface LiquidButtonProps extends React.HTMLAttributes<HTMLElement> {
@@ -22,6 +22,8 @@ export interface LiquidButtonProps extends React.HTMLAttributes<HTMLElement> {
   active?: boolean;
   activeColor?: string;
   waveColor?: string;
+  stayActiveOnClick?: boolean;
+  stayActive?: boolean;
 
   // Toggleable and customizable border ("but-border = 0" disables border)
   butBorder?: boolean | number | string;
@@ -69,12 +71,62 @@ export default function LiquidButton({
   active,
   activeColor = "bg-eva-red",
   waveColor = "rgba(255, 255, 255, 0.25)",
+  stayActiveOnClick = false,
+  stayActive = false,
   butBorder,
   "but-border": butBorderKebab,
   borderColor,
   ...rest
 }: LiquidButtonProps) {
-  const isCurrentlyActive = Boolean(isActive || active);
+  const isControlled = isActive !== undefined || active !== undefined;
+  const [isFilling, setIsFilling] = useState(false);
+  const [isClickActive, setIsClickActive] = useState(false);
+  const prevActiveRef = useRef(Boolean(isActive || active));
+  const hasMountedRef = useRef(false);
+
+  const isCurrentlyActive = Boolean(
+    isControlled ? (isActive || active || isClickActive) : isClickActive
+  );
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    const propActive = Boolean(isActive || active);
+    if (!prevActiveRef.current && propActive) {
+      setIsFilling(true);
+    }
+    if (isControlled && !propActive) {
+      setIsClickActive(false);
+    }
+    prevActiveRef.current = propActive;
+  }, [isActive, active, isControlled]);
+
+  useEffect(() => {
+    if (isFilling) {
+      const timer = setTimeout(() => {
+        setIsFilling(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [isFilling]);
+
+  const handleClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (disabled) {
+      e.preventDefault();
+      return;
+    }
+
+    if (stayActiveOnClick || stayActive || isCurrentlyActive || href) {
+      setIsClickActive(true);
+      setIsFilling(true);
+    }
+
+    if (onClick) {
+      (onClick as React.MouseEventHandler<HTMLElement>)(e);
+    }
+  };
 
   // Border toggle and customization: if but-border = 0 / false, border is disabled; otherwise enabled by default
   const rawBorder = butBorder !== undefined ? butBorder : butBorderKebab;
@@ -123,6 +175,11 @@ export default function LiquidButton({
   const content = (
     <>
       <style>{`
+        @keyframes liquidRiseFill {
+          0% { transform: translateY(100%); }
+          80% { transform: translateY(-2%); }
+          100% { transform: translateY(0); }
+        }
         @keyframes liquidWaveSlow {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
@@ -157,16 +214,35 @@ export default function LiquidButton({
           [data-testid="liquid-bubbles"] * {
             animation: none !important;
             transition: none !important;
+            transform: none !important;
           }
         }
       `}</style>
 
-      {/* Active State Wave & Effervescent Rising Bubbles Layer */}
-      {isCurrentlyActive ? (
+      {/* 1. Inactive / Hover Liquid Layer (Green liquid by default) */}
+      <span
+        className={`absolute inset-0 ${liquidColor} ${
+          isFilling
+            ? "translate-y-0 opacity-100"
+            : isCurrentlyActive
+            ? "translate-y-0 opacity-0 pointer-events-none"
+            : "translate-y-full group-hover:translate-y-0 group-focus-visible:translate-y-0 group-active:translate-y-0"
+        } transition-transform duration-300 ease-out z-0 pointer-events-none`}
+        aria-hidden="true"
+      />
+
+      {/* 2. Active Red Liquid Layer (Waves & Effervescent Rising Bubbles) with After-Click Fill Animation */}
+      {(isCurrentlyActive || isFilling) && (
         <div
-          className="absolute inset-0 overflow-hidden pointer-events-none z-0"
+          className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"
           aria-hidden="true"
           data-testid="liquid-button-wave-layer"
+          style={{
+            animation: isFilling
+              ? "liquidRiseFill 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards"
+              : undefined,
+          }}
+          onAnimationEnd={() => setIsFilling(false)}
         >
           {/* Base active color fill */}
           <div className={`absolute inset-0 ${activeColor}`} />
@@ -237,18 +313,12 @@ export default function LiquidButton({
             </svg>
           </div>
         </div>
-      ) : (
-        /* Liquid fill overlay sliding up from bottom to top on hover when inactive */
-        <span
-          className={`absolute inset-0 ${liquidColor} translate-y-full group-hover:translate-y-0 group-focus-visible:translate-y-0 group-active:translate-y-0 transition-transform duration-300 ease-out z-0 pointer-events-none`}
-          aria-hidden="true"
-        />
       )}
 
       {/* Button content (text, icons, etc.) */}
       <span
         className={`relative z-10 transition-colors duration-200 ${
-          isCurrentlyActive ? "text-white" : activeTextColor
+          isCurrentlyActive || isFilling ? "text-white" : activeTextColor
         } flex items-center justify-center gap-2.5 ${contentClassName}`.trim()}
       >
         {children}
@@ -293,7 +363,7 @@ export default function LiquidButton({
           rel={target === "_blank" ? (rel || "noopener noreferrer") : rel}
           className={combinedClassName}
           data-testid={dataTestId}
-          onClick={onClick as React.MouseEventHandler<HTMLAnchorElement>}
+          onClick={handleClick as React.MouseEventHandler<HTMLAnchorElement>}
           {...rest}
         >
           {content}
@@ -308,7 +378,7 @@ export default function LiquidButton({
         rel={rel}
         className={combinedClassName}
         data-testid={dataTestId}
-        onClick={onClick as React.MouseEventHandler<HTMLAnchorElement>}
+        onClick={handleClick as React.MouseEventHandler<HTMLAnchorElement>}
         {...rest}
       >
         {content}
@@ -323,7 +393,7 @@ export default function LiquidButton({
       aria-disabled={disabled ? "true" : undefined}
       className={combinedClassName}
       data-testid={dataTestId}
-      onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
+      onClick={handleClick as React.MouseEventHandler<HTMLButtonElement>}
       {...(rest as React.ButtonHTMLAttributes<HTMLButtonElement>)}
     >
       {content}
