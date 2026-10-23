@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import React from "react";
 import { renderToString } from "react-dom/server";
 import { ConfigInput } from "@/app/admin/config/components/ConfigInput";
-import { ConfigResumeCard } from "@/app/admin/config/components/ConfigResumeCard";
+import { ConfigResumeCard, getPdfContentUrl } from "@/app/admin/config/components/ConfigResumeCard";
 import { ConfigAvatarCard } from "@/app/admin/config/components/ConfigAvatarCard";
 import { ConfigPfpCard } from "@/app/admin/config/components/ConfigPfpCard";
 import { PdfViewer } from "@/components/PdfViewer";
@@ -134,6 +134,7 @@ describe("Admin Config Page & Form Mechanics", () => {
         React.createElement(ConfigResumeCard, {
           resumeUrl,
           onUpdateResumeUrl: () => {},
+          onUploadResumeFile: () => {},
         })
       );
 
@@ -145,12 +146,49 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.ok(html.includes('data-testid="pdf-viewer-container"'), "Must render PdfViewer container");
     });
 
+    test("shows Upload trigger only when onUploadResumeFile exists, and URL editor only when onUpdateResumeUrl exists", () => {
+      const resumeUrl = "https://drive.google.com/file/d/test_resume/view";
+      // Case A: Only onUpdateResumeUrl (no upload)
+      const htmlUpdateOnly = renderToString(
+        React.createElement(ConfigResumeCard, {
+          resumeUrl,
+          onUpdateResumeUrl: () => {},
+        })
+      );
+      assert.ok(!htmlUpdateOnly.includes('aria-label="Upload Resume"'), "Must NOT show upload trigger without onUploadResumeFile");
+      assert.ok(htmlUpdateOnly.includes("[EDIT URL]"), "Must show [EDIT URL] when onUpdateResumeUrl is present");
+
+      // Case B: Only onUploadResumeFile (no URL editor)
+      const htmlUploadOnly = renderToString(
+        React.createElement(ConfigResumeCard, {
+          resumeUrl,
+          onUploadResumeFile: () => {},
+        })
+      );
+      assert.ok(htmlUploadOnly.includes('aria-label="Upload Resume"'), "Must show upload trigger when onUploadResumeFile is present");
+      assert.ok(!htmlUploadOnly.includes("[EDIT URL]"), "Must NOT show [EDIT URL] without onUpdateResumeUrl");
+    });
+
+    test("converts Drive viewing URL to direct PDF content URL for PdfViewer while preserving Drive link for external link", () => {
+      const driveUrl = "https://drive.google.com/file/d/abc123xyz/view?usp=sharing";
+      const html = renderToString(
+        React.createElement(ConfigResumeCard, {
+          resumeUrl: driveUrl,
+        })
+      );
+
+      // External link must keep the original Drive viewing URL
+      assert.ok(html.includes(`href="${driveUrl}"`), "External link must preserve Drive URL");
+      // PdfViewer must receive the PDF-content stream URL instead of the HTML viewing page
+      assert.ok(html.includes("data-testid=\"pdf-viewer-container\""), "Must render PdfViewer container");
+    });
+
     test("renders staged badge when stagedFileName is provided", () => {
       const resumeUrl = "https://drive.google.com/file/d/test_resume/view";
       const html = renderToString(
         React.createElement(ConfigResumeCard, {
           resumeUrl,
-          onUpdateResumeUrl: () => {},
+          onUploadResumeFile: () => {},
           stagedFileName: "my_cv.pdf",
         })
       );
@@ -187,6 +225,26 @@ describe("Admin Config Page & Form Mechanics", () => {
       );
 
       assert.ok(html.includes("height:210px"), "Must apply 210px height to viewer container");
+    });
+
+    test("getPdfContentUrl converts Google Drive viewing URLs into direct PDF bytes endpoints", () => {
+      assert.strictEqual(
+        getPdfContentUrl("https://drive.google.com/file/d/abc-123_xyz/view?usp=sharing"),
+        "https://drive.google.com/uc?export=download&id=abc-123_xyz"
+      );
+      assert.strictEqual(
+        getPdfContentUrl("https://docs.google.com/file/d/file456/view"),
+        "https://drive.google.com/uc?export=download&id=file456"
+      );
+      assert.strictEqual(
+        getPdfContentUrl("https://drive.google.com/open?id=open789"),
+        "https://drive.google.com/uc?export=download&id=open789"
+      );
+      assert.strictEqual(
+        getPdfContentUrl("https://res.cloudinary.com/demo/raw/upload/resume.pdf"),
+        "https://res.cloudinary.com/demo/raw/upload/resume.pdf"
+      );
+      assert.strictEqual(getPdfContentUrl(""), "");
     });
   });
 
