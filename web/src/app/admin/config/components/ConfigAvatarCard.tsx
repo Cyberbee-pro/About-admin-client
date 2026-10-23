@@ -51,7 +51,7 @@ export function ConfigAvatarCard({
         ];
 
   // Adjust selectedIndex when activePfpUrl updates without cascading renders
-  const [prevActiveUrl, setPrevActiveUrl] = useState(activePfpUrl);
+  const [prevActiveUrl, setPrevActiveUrl] = useState<string | undefined>(undefined);
   if (activePfpUrl !== prevActiveUrl) {
     setPrevActiveUrl(activePfpUrl);
     if (activePfpUrl) {

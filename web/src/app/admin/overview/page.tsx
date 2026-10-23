@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Image from "next/image";
 import ProfileDetails from "./components/ProfileDetails";
 import ProfileAvatarCard from "./components/ProfileAvatarCard";
-import ResumePreviewCard from "./components/ResumePreviewCard";
+import ConfigResumeCard from "../config/components/ConfigResumeCard";
 import TopSkillsCard from "./components/TopSkillsCard";
 import CoreStatusBox from "./components/CoreStatusBox";
 import OverviewBackground from "./components/OverviewBackground";
@@ -43,7 +43,7 @@ export default function AdminOverviewPage() {
         >
           {/* Card 1: Resume.pdf */}
           <div className="md:col-span-5 lg:col-span-5">
-            <ResumePreviewCard />
+            <ConfigResumeCard editable={false} />
           </div>
 
           {/* Card 2: Top Skills */}

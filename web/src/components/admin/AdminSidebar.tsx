@@ -25,10 +25,11 @@ export function AdminSidebar() {
   return (
     <aside
       aria-label="Admin Navigation"
-      className="w-64 shrink-0 min-h-screen bg-eva-purple border-r border-eva-purple/40 flex flex-col select-none text-white z-20"
+      className="w-64 shrink-0 h-[100vh] h-screen sticky top-0 bg-eva-purple border-r border-eva-purple/40 flex flex-col select-none text-white z-20 overflow-hidden"
+      style={{ height: "100vh" }}
     >
       {/* 1. Branding Header: ITZEUL.svg strictly clean with ZERO glow and NO yellow accent */}
-      <div className="h-20 px-6 flex items-center gap-3.5">
+      <div className="h-20 px-6 flex items-center gap-3.5 shrink-0">
         <div className="relative w-9 h-9 shrink-0 flex items-center justify-center">
           <Image
             src="/eva dash/ITZEUL.svg"
@@ -45,7 +46,7 @@ export function AdminSidebar() {
       </div>
 
       {/* 2. Navigation Tabs */}
-      <nav className="flex-1 py-2 flex flex-col">
+      <nav className="flex-1 py-2 flex flex-col overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -77,7 +78,7 @@ export function AdminSidebar() {
       </nav>
 
       {/* 3. Footer Motif: Raw eva no back.png with zero badges, corner brackets, or extra padding */}
-      <div className="mt-auto overflow-hidden">
+      <div className="mt-auto overflow-hidden shrink-0">
         <Image
           src="/eva dash/eva no back.png"
           alt="EVA Unit-01 Motif"

@@ -254,4 +254,98 @@ describe("Admin Proxy Route Handler (/api/admin/[[...path]])", () => {
     assert.strictEqual(json.status, 502);
     assert.ok(json.detail.includes("Connection refused"));
   });
+
+  test("rejects path segments equal to '.' or '..' with 400 Bad Request", async () => {
+    const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+    const reqDot = new NextRequest("http://localhost:3000/api/admin/api/v1/.", {
+      headers: { cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}` },
+    });
+    const resDot = await GET(reqDot, {
+      params: Promise.resolve({ path: ["api", "v1", "."] }),
+    });
+    assert.strictEqual(resDot.status, 400);
+    const jsonDot = await resDot.json();
+    assert.strictEqual(jsonDot.status, 400);
+    assert.strictEqual(jsonDot.title, "Bad Request");
+
+    const reqDotDot = new NextRequest("http://localhost:3000/api/admin/api/v1/..", {
+      headers: { cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}` },
+    });
+    const resDotDot = await GET(reqDotDot, {
+      params: Promise.resolve({ path: ["api", "v1", ".."] }),
+    });
+    assert.strictEqual(resDotDot.status, 400);
+  });
+
+  test("encodes path segments before forwarding upstream", async () => {
+    const sessionToken = createAdminSessionToken("Cyberbee-pro");
+    let forwardedUrl = "";
+
+    global.fetch = (async (input: RequestInfo | URL) => {
+      forwardedUrl = String(input);
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    const req = new NextRequest("http://localhost:3000/api/admin/v1/tag/web%20app", {
+      headers: { cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}` },
+    });
+    const res = await GET(req, {
+      params: Promise.resolve({ path: ["v1", "tag", "web app"] }),
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(
+      forwardedUrl,
+      "https://backend.example.com/api/v1/tag/web%20app"
+    );
+  });
+
+  test("proxies 204 No Content response with null body without throwing 502", async () => {
+    const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+    global.fetch = (async () => {
+      return new Response(null, {
+        status: 204,
+        statusText: "No Content",
+      });
+    }) as typeof fetch;
+
+    const req = new NextRequest("http://localhost:3000/api/admin/api/v1/projects/123", {
+      method: "DELETE",
+      headers: { cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}` },
+    });
+
+    const res = await DELETE(req, {
+      params: Promise.resolve({ path: ["api", "v1", "projects", "123"] }),
+    });
+
+    assert.strictEqual(res.status, 204);
+    const text = await res.text();
+    assert.strictEqual(text, "");
+  });
+
+  test("proxies 304 Not Modified response with null body", async () => {
+    const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+    global.fetch = (async () => {
+      return new Response(null, {
+        status: 304,
+        statusText: "Not Modified",
+      });
+    }) as typeof fetch;
+
+    const req = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+      headers: { cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}` },
+    });
+
+    const res = await GET(req, {
+      params: Promise.resolve({ path: ["api", "v1", "config"] }),
+    });
+
+    assert.strictEqual(res.status, 304);
+  });
 });
