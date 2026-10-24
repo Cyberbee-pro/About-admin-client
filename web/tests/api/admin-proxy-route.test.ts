@@ -120,6 +120,7 @@ describe("Admin Proxy Route Handler (/api/admin/[[...path]])", () => {
       method: "PUT",
       headers: {
         cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+        origin: "http://localhost:3000",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ name: "Updated Name" }),
@@ -167,6 +168,7 @@ describe("Admin Proxy Route Handler (/api/admin/[[...path]])", () => {
       method: "POST",
       headers: {
         cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+        origin: "http://localhost:3000",
         "Content-Type": "multipart/form-data; boundary=--Boundary123",
       },
       body: fakeMultipart,
@@ -202,6 +204,7 @@ describe("Admin Proxy Route Handler (/api/admin/[[...path]])", () => {
       method: "DELETE",
       headers: {
         cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+        origin: "http://localhost:3000",
       },
     });
 
@@ -316,7 +319,10 @@ describe("Admin Proxy Route Handler (/api/admin/[[...path]])", () => {
 
     const req = new NextRequest("http://localhost:3000/api/admin/api/v1/projects/123", {
       method: "DELETE",
-      headers: { cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}` },
+      headers: {
+        cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+        origin: "http://localhost:3000",
+      },
     });
 
     const res = await DELETE(req, {
@@ -347,5 +353,162 @@ describe("Admin Proxy Route Handler (/api/admin/[[...path]])", () => {
     });
 
     assert.strictEqual(res.status, 304);
+  });
+
+  describe("Origin and CSRF Validation for Mutations", () => {
+    test("rejects mutating POST/PUT/DELETE request with mismatched origin with 403", async () => {
+      const sessionToken = createAdminSessionToken("Cyberbee-pro");
+      const req = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+        method: "POST",
+        headers: {
+          cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+          origin: "https://evil-attacker.com",
+        },
+      });
+
+      const res = await POST(req, {
+        params: Promise.resolve({ path: ["api", "v1", "config"] }),
+      });
+
+      assert.strictEqual(res.status, 403);
+      const json = await res.json();
+      assert.strictEqual(json.status, 403);
+      assert.strictEqual(json.title, "Forbidden");
+      assert.ok(json.detail.includes("Origin does not match"));
+    });
+
+    test("honors x-forwarded-host when verifying matching origin", async () => {
+      const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+      global.fetch = (async () => {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }) as typeof fetch;
+
+      const req = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+        method: "PUT",
+        headers: {
+          cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+          "x-forwarded-host": "admin.shibraj.dev",
+          origin: "https://admin.shibraj.dev",
+        },
+      });
+
+      const res = await PUT(req, {
+        params: Promise.resolve({ path: ["api", "v1", "config"] }),
+      });
+
+      assert.strictEqual(res.status, 200);
+    });
+
+    test("allows mutating request when origin is absent and sec-fetch-site is same-origin", async () => {
+      const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+      global.fetch = (async () => {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }) as typeof fetch;
+
+      const req = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+        method: "POST",
+        headers: {
+          cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+          "sec-fetch-site": "same-origin",
+        },
+      });
+
+      const res = await POST(req, {
+        params: Promise.resolve({ path: ["api", "v1", "config"] }),
+      });
+
+      assert.strictEqual(res.status, 200);
+    });
+
+    test("allows mutating request when origin is absent and sec-fetch-site is none", async () => {
+      const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+      global.fetch = (async () => {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }) as typeof fetch;
+
+      const req = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+        method: "DELETE",
+        headers: {
+          cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+          "sec-fetch-site": "none",
+        },
+      });
+
+      const res = await DELETE(req, {
+        params: Promise.resolve({ path: ["api", "v1", "config"] }),
+      });
+
+      assert.strictEqual(res.status, 200);
+    });
+
+    test("rejects mutating request when origin is absent and sec-fetch-site is untrusted or missing", async () => {
+      const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+      // Test with missing Sec-Fetch-Site
+      const reqMissing = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+        method: "POST",
+        headers: {
+          cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+        },
+      });
+
+      const resMissing = await POST(reqMissing, {
+        params: Promise.resolve({ path: ["api", "v1", "config"] }),
+      });
+
+      assert.strictEqual(resMissing.status, 403);
+
+      // Test with cross-site Sec-Fetch-Site
+      const reqCrossSite = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+        method: "POST",
+        headers: {
+          cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+          "sec-fetch-site": "cross-site",
+        },
+      });
+
+      const resCrossSite = await POST(reqCrossSite, {
+        params: Promise.resolve({ path: ["api", "v1", "config"] }),
+      });
+
+      assert.strictEqual(resCrossSite.status, 403);
+    });
+
+    test("GET requests remain unaffected by origin and sec-fetch-site headers", async () => {
+      const sessionToken = createAdminSessionToken("Cyberbee-pro");
+
+      global.fetch = (async () => {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }) as typeof fetch;
+
+      const req = new NextRequest("http://localhost:3000/api/admin/api/v1/config", {
+        method: "GET",
+        headers: {
+          cookie: `${COOKIE_ADMIN_SESSION}=${sessionToken}`,
+          origin: "https://external-referrer.com",
+        },
+      });
+
+      const res = await GET(req, {
+        params: Promise.resolve({ path: ["api", "v1", "config"] }),
+      });
+
+      assert.strictEqual(res.status, 200);
+    });
   });
 });

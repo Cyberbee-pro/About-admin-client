@@ -32,6 +32,9 @@ export default function SkillsAndAchievementsPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(true);
   const [loadingAchievements, setLoadingAchievements] = useState(true);
+  const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [achievementsError, setAchievementsError] = useState<string | null>(null);
+  const isMountedRef = React.useRef(true);
 
   // Edit states (only one edit panel per section at a time)
   const [editingSkillId, setEditingSkillId] = useState<string | null>(null);
@@ -61,17 +64,26 @@ export default function SkillsAndAchievementsPage() {
   const loadSkills = useCallback(async () => {
     try {
       const res = await getSkills();
-      if (res && res.data) {
-        setSkills(res.data);
+      if (isMountedRef.current) {
+        if (res && res.data) {
+          setSkills(res.data);
+          setSkillsError(null);
+        }
       }
     } catch (err) {
       console.error("Failed to load skills:", err);
-      setStatusNotice({
-        type: "error",
-        message: err instanceof Error ? err.message : "Failed to fetch skills",
-      });
+      if (isMountedRef.current) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch skills";
+        setSkillsError(errorMsg);
+        setStatusNotice({
+          type: "error",
+          message: errorMsg,
+        });
+      }
     } finally {
-      setLoadingSkills(false);
+      if (isMountedRef.current) {
+        setLoadingSkills(false);
+      }
     }
   }, []);
 
@@ -79,54 +91,39 @@ export default function SkillsAndAchievementsPage() {
   const loadAchievements = useCallback(async () => {
     try {
       const res = await getAchievements();
-      if (res && res.data) {
-        setAchievements(res.data);
+      if (isMountedRef.current) {
+        if (res && res.data) {
+          setAchievements(res.data);
+          setAchievementsError(null);
+        }
       }
     } catch (err) {
       console.error("Failed to load achievements:", err);
-      setStatusNotice({
-        type: "error",
-        message: err instanceof Error ? err.message : "Failed to fetch achievements",
-      });
+      if (isMountedRef.current) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to fetch achievements";
+        setAchievementsError(errorMsg);
+        setStatusNotice({
+          type: "error",
+          message: errorMsg,
+        });
+      }
     } finally {
-      setLoadingAchievements(false);
+      if (isMountedRef.current) {
+        setLoadingAchievements(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function initialFetch() {
-      try {
-        const [skillsRes, achsRes] = await Promise.all([
-          getSkills().catch((err) => {
-            console.error("Failed to load skills:", err);
-            return null;
-          }),
-          getAchievements().catch((err) => {
-            console.error("Failed to load achievements:", err);
-            return null;
-          }),
-        ]);
-
-        if (isMounted) {
-          if (skillsRes?.data) setSkills(skillsRes.data);
-          if (achsRes?.data) setAchievements(achsRes.data);
-        }
-      } finally {
-        if (isMounted) {
-          setLoadingSkills(false);
-          setLoadingAchievements(false);
-        }
-      }
-    }
-
-    initialFetch();
+    isMountedRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadSkills();
+    void loadAchievements();
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
     };
-  }, []);
+  }, [loadSkills, loadAchievements]);
 
   // Handle Add Skill Submit
   const handleAddSkill = async (data: {
@@ -357,6 +354,11 @@ export default function SkillsAndAchievementsPage() {
             <SkillsList
               skills={skills}
               loading={loadingSkills}
+              error={skillsError}
+              onRetry={() => {
+                setLoadingSkills(true);
+                void loadSkills();
+              }}
               onEdit={(skill) => {
                 setEditingSkillId(skill._id);
               }}
@@ -393,6 +395,11 @@ export default function SkillsAndAchievementsPage() {
             <AchievementsList
               achievements={achievements}
               loading={loadingAchievements}
+              error={achievementsError}
+              onRetry={() => {
+                setLoadingAchievements(true);
+                void loadAchievements();
+              }}
               onEdit={(ach) => {
                 setEditingAchievementId(ach._id);
               }}

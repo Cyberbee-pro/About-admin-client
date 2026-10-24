@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Achievement } from "@/lib/api/types";
+import WeightSelect from "./WeightSelect";
 
 export interface EditAchievementPanelProps {
   achievement: Achievement;
@@ -127,30 +128,13 @@ export function EditAchievementPanel({
             <label htmlFor="edit-ach-weight" className="shrink-0 tracking-wide text-sm sm:text-base">
               weight :
             </label>
-            <div className="relative inline-block">
-              <select
-                id="edit-ach-weight"
-                value={weight}
-                onChange={(e) => setWeight(Number(e.target.value))}
-                disabled={isSaving}
-                data-ascii="skip"
-                className="appearance-none bg-black/40 border border-white/40 text-white font-mono text-xs px-2.5 py-0.5 pr-6 rounded-none focus:outline-none focus:border-white cursor-pointer"
-              >
-                <option value={1}>[1lv]</option>
-                <option value={2}>[2lv]</option>
-                <option value={3}>[3lv]</option>
-                <option value={4}>[4lv]</option>
-                <option value={5}>[5lv]</option>
-                <option value={6}>[6lv]</option>
-                <option value={7}>[7lv]</option>
-                <option value={8}>[8lv]</option>
-                <option value={9}>[9lv]</option>
-                <option value={10}>[10lv]</option>
-              </select>
-              <span className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-white/70 font-mono text-[10px]">
-                v
-              </span>
-            </div>
+            <WeightSelect
+              id="edit-ach-weight"
+              value={weight}
+              onChange={setWeight}
+              disabled={isSaving}
+              selectClassName="bg-black/40"
+            />
           </div>
 
           {/* Featured */}

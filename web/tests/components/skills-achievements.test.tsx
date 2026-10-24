@@ -10,6 +10,7 @@ import { AddAchievementForm } from "@/app/admin/skills-achievements/components/A
 import { EditAchievementPanel } from "@/app/admin/skills-achievements/components/EditAchievementPanel";
 import { AchievementsList } from "@/app/admin/skills-achievements/components/AchievementsList";
 import { DeleteConfirmModal } from "@/app/admin/skills-achievements/components/DeleteConfirmModal";
+import { WeightSelect } from "@/app/admin/skills-achievements/components/WeightSelect";
 import SkillsAndAchievementsPage from "@/app/admin/skills-achievements/page";
 import { Skill, Achievement } from "@/lib/api/types";
 
@@ -122,6 +123,21 @@ describe("Skills & Achievements Admin Modules", () => {
       assert.ok(html.includes("Del"), "Must render approved addition Del button on card");
       assert.ok(html.includes("eva-custom-scrollbar"), "Must use styled custom scrollbar");
     });
+
+    test("renders error state when fetch fails instead of empty state", () => {
+      const html = renderToString(
+        React.createElement(SkillsList, {
+          skills: [],
+          error: "Connection timeout to core database",
+          onEdit: () => {},
+          onDelete: () => {},
+        })
+      );
+
+      assert.ok(html.includes("SYSTEM ERROR // FAILED TO RETRIEVE SKILLS"), "Must render error banner heading");
+      assert.ok(html.includes("Connection timeout to core database"), "Must render actual error detail");
+      assert.ok(!html.includes("NO SKILLS RECORDED"), "Must NOT show empty state when there is an error");
+    });
   });
 
   describe("AddAchievementForm Component", () => {
@@ -201,6 +217,71 @@ describe("Skills & Achievements Admin Modules", () => {
       assert.ok(html.includes("weight [8]"), "Must render weight indicator");
       assert.ok(html.includes("featured [✓]"), "Must render featured indicator");
       assert.ok(html.includes("eva-custom-scrollbar"), "Must use styled custom scrollbar");
+    });
+
+    test("renders error state when fetch fails instead of empty state", () => {
+      const html = renderToString(
+        React.createElement(AchievementsList, {
+          achievements: [],
+          error: "Failed to connect to upstream service",
+          onEdit: () => {},
+          onDelete: () => {},
+        })
+      );
+
+      assert.ok(html.includes("SYSTEM ERROR // FAILED TO RETRIEVE ACHIEVEMENTS"), "Must render error banner heading");
+      assert.ok(html.includes("Failed to connect to upstream service"), "Must render actual error detail");
+      assert.ok(!html.includes("NO ACHIEVEMENTS RECORDED"), "Must NOT show empty state when there is an error");
+    });
+  });
+
+  describe("WeightSelect Component", () => {
+    test("renders plain numbers 1 to 10 with no 'lv' suffix", () => {
+      const html = renderToString(
+        React.createElement(WeightSelect, {
+          id: "test-weight",
+          value: 1,
+          onChange: () => {},
+        })
+      );
+
+      assert.ok(!html.includes("lv"), "Dropdown options must NOT contain 'lv' suffix");
+      assert.ok(html.includes("value=\"1\">1</option>"), "Must contain plain option 1");
+      assert.ok(html.includes("value=\"10\">10</option>"), "Must contain plain option 10");
+    });
+
+    test("normalizes 0, negative, or missing weight to minimum 1", () => {
+      const htmlZero = renderToString(
+        React.createElement(WeightSelect, {
+          id: "test-weight-zero",
+          value: 0,
+          onChange: () => {},
+        })
+      );
+
+      assert.ok(htmlZero.includes("value=\"1\" selected"), "Must normalize 0 to 1");
+
+      const htmlNegative = renderToString(
+        React.createElement(WeightSelect, {
+          id: "test-weight-neg",
+          value: -5,
+          onChange: () => {},
+        })
+      );
+
+      assert.ok(htmlNegative.includes("value=\"1\" selected"), "Must normalize negative value to 1");
+    });
+
+    test("includes stored weight above 10 as an extra option so saving preserves it", () => {
+      const html = renderToString(
+        React.createElement(WeightSelect, {
+          id: "test-weight-large",
+          value: 25,
+          onChange: () => {},
+        })
+      );
+
+      assert.ok(html.includes("value=\"25\" selected>25</option>"), "Must append 25 as an extra selected option");
     });
   });
 
