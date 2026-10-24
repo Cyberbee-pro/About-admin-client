@@ -4,5 +4,6 @@ export * from "./projectService";
 export * from "./configService";
 export * from "./logService";
 export * from "./skillService";
+export * from "./achievementService";
 export * from "./healthService";
 

@@ -3,21 +3,23 @@ import {
   Skill,
   CreateSkillInput,
   UpdateSkillInput,
+  GetSkillsParams,
   ApiResponse,
   ApiListResponse,
+  SkillFiles,
 } from "./types";
 import { ServiceAuthOption } from "./projectService";
 
-export interface SkillFiles {
-  logoUrl?: File | Blob;
-}
+export type { SkillFiles };
 
 /**
  * Lists all skills sorted by weight and name.
+ * Supports optional type filtering ("tool" | "language" | "framework").
  * Public endpoint.
  */
-export async function getSkills(): Promise<ApiListResponse<Skill>> {
-  return apiClient<ApiListResponse<Skill>>("/api/v1/skills", {
+export async function getSkills(params?: GetSkillsParams): Promise<ApiListResponse<Skill>> {
+  const query = params?.type ? `?type=${encodeURIComponent(params.type)}` : "";
+  return apiClient<ApiListResponse<Skill>>(`/api/v1/skills${query}`, {
     method: "GET",
   });
 }
@@ -44,6 +46,7 @@ export async function createSkill(
   if (files?.logoUrl) {
     const formData = new FormData();
     formData.append("name", data.name);
+    if (data.type !== undefined) formData.append("type", data.type);
     if (data.weight !== undefined) formData.append("weight", String(data.weight));
     if (data.featured !== undefined) formData.append("featured", String(data.featured));
     formData.append("logoUrl", files.logoUrl);
@@ -75,6 +78,7 @@ export async function updateSkill(
   if (files?.logoUrl) {
     const formData = new FormData();
     if (data.name !== undefined) formData.append("name", data.name);
+    if (data.type !== undefined) formData.append("type", data.type);
     if (data.weight !== undefined) formData.append("weight", String(data.weight));
     if (data.featured !== undefined) formData.append("featured", String(data.featured));
     formData.append("logoUrl", files.logoUrl);

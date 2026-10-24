@@ -55,6 +55,7 @@ export interface Project {
   image: string;
   featured: boolean;
   tags: string[];
+  skills?: string[];
   startDate: string;
   endDate?: string;
   status: ProjectStatus;
@@ -77,6 +78,7 @@ export interface CreateProjectInput {
   image?: string;
   featured?: boolean;
   tags?: string[];
+  skills?: string[];
   startDate?: string;
   endDate?: string;
   status?: ProjectStatus;
@@ -141,9 +143,12 @@ export interface SiteConfig {
 
 export type UpdateConfigInput = Partial<Omit<SiteConfig, "_id" | "createdAt" | "updatedAt">>;
 
+export type SkillType = "tool" | "language" | "framework";
+
 export interface Skill {
   _id: string;
   name: string;
+  type?: SkillType;
   logoUrl?: string;
   featured?: boolean;
   weight: number;
@@ -153,12 +158,134 @@ export interface Skill {
 
 export interface CreateSkillInput {
   name: string;
+  type?: SkillType;
   logoUrl?: string;
   featured?: boolean;
   weight?: number;
 }
 
 export type UpdateSkillInput = Partial<CreateSkillInput>;
+
+export interface GetSkillsParams {
+  type?: SkillType;
+}
+
+export interface SkillFiles {
+  logoUrl?: File | Blob;
+}
+
+// --- Certificate Models ---
+export interface Certificate {
+  _id: string;
+  title: string;
+  description: string;
+  link?: string;
+  mediaUrl: string;
+  organization: string;
+  weight: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateCertificateInput {
+  title: string;
+  description?: string;
+  organization: string;
+  mediaUrl?: string;
+  link?: string;
+  weight?: number;
+}
+
+export type UpdateCertificateInput = Partial<CreateCertificateInput>;
+
+export interface CertificateFiles {
+  mediaUrl?: File | Blob;
+}
+
+// --- Achievement Models ---
+export interface Achievement {
+  _id: string;
+  title: string;
+  date: string; // e.g. "October 2024" or "mm/yyyy"
+  detail: string;
+  weight: number;
+  featured?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateAchievementInput {
+  title: string;
+  date: string;
+  detail: string;
+  weight?: number;
+  featured?: boolean;
+}
+
+export type UpdateAchievementInput = Partial<CreateAchievementInput>;
+
+// --- Experience Models ---
+export type ExperienceTag = "focus" | "extracurricular";
+export type ExperienceType =
+  | "internship"
+  | "contract"
+  | "freelance"
+  | "full_time"
+  | "part_time"
+  | "club"
+  | "volunteering";
+
+export interface ExperiencePosition {
+  _id?: string;
+  position: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+  mediaUrls?: string[];
+  certificateUrls?: string[];
+  isCurrent: boolean;
+}
+
+export interface Experience {
+  _id: string;
+  organization: string;
+  tag: ExperienceTag;
+  type: ExperienceType;
+  iconUrl?: string;
+  skills: string[]; // ObjectId refs to Skill
+  weight: number;
+  positions: ExperiencePosition[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateExperienceInput {
+  organization: string;
+  tag?: ExperienceTag;
+  type?: ExperienceType;
+  iconUrl?: string;
+  skills?: string[];
+  weight?: number;
+  positions?: ExperiencePosition[];
+}
+
+export type UpdateExperienceInput = Partial<CreateExperienceInput>;
+
+export interface CreatePositionInput {
+  position?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  mediaUrls?: string[];
+  certificateUrls?: string[];
+}
+
+export interface ExperienceFiles {
+  iconUrl?: File | Blob;
+  mediaUrls?: (File | Blob)[];
+  certificateUrls?: (File | Blob)[];
+}
 
 export interface HealthResponse {
   status: "healthy" | string;
