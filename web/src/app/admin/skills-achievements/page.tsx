@@ -60,7 +60,6 @@ export default function SkillsAndAchievementsPage() {
   // Load Skills from API
   const loadSkills = useCallback(async () => {
     try {
-      setLoadingSkills(true);
       const res = await getSkills();
       if (res && res.data) {
         setSkills(res.data);
@@ -79,7 +78,6 @@ export default function SkillsAndAchievementsPage() {
   // Load Achievements from API
   const loadAchievements = useCallback(async () => {
     try {
-      setLoadingAchievements(true);
       const res = await getAchievements();
       if (res && res.data) {
         setAchievements(res.data);
@@ -96,9 +94,39 @@ export default function SkillsAndAchievementsPage() {
   }, []);
 
   useEffect(() => {
-    loadSkills();
-    loadAchievements();
-  }, [loadSkills, loadAchievements]);
+    let isMounted = true;
+
+    async function initialFetch() {
+      try {
+        const [skillsRes, achsRes] = await Promise.all([
+          getSkills().catch((err) => {
+            console.error("Failed to load skills:", err);
+            return null;
+          }),
+          getAchievements().catch((err) => {
+            console.error("Failed to load achievements:", err);
+            return null;
+          }),
+        ]);
+
+        if (isMounted) {
+          if (skillsRes?.data) setSkills(skillsRes.data);
+          if (achsRes?.data) setAchievements(achsRes.data);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingSkills(false);
+          setLoadingAchievements(false);
+        }
+      }
+    }
+
+    initialFetch();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Handle Add Skill Submit
   const handleAddSkill = async (data: {
@@ -317,6 +345,7 @@ export default function SkillsAndAchievementsPage() {
             {/* 2. Inline Edit Skills Panel (State 2: appears between Add Skill and All Skills) */}
             {editingSkill && (
               <EditSkillPanel
+                key={editingSkill._id}
                 skill={editingSkill}
                 onSave={handleSaveSkill}
                 onCancel={() => setEditingSkillId(null)}
@@ -352,6 +381,7 @@ export default function SkillsAndAchievementsPage() {
             {/* 2. Inline Edit Achievement Panel (State 3: appears between Add Achievement and All Achievements) */}
             {editingAchievement && (
               <EditAchievementPanel
+                key={editingAchievement._id}
                 achievement={editingAchievement}
                 onSave={handleSaveAchievement}
                 onCancel={() => setEditingAchievementId(null)}

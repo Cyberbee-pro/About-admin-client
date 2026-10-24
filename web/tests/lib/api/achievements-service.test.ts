@@ -89,13 +89,11 @@ describe("Achievement API Service Module", () => {
     let capturedUrl = "";
     let capturedMethod = "";
     let capturedBody = "";
-    let capturedHeaders: HeadersInit | undefined;
 
     global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       capturedUrl = String(input);
       capturedMethod = init?.method || "";
       capturedBody = String(init?.body || "");
-      capturedHeaders = init?.headers;
       return new Response(
         JSON.stringify({
           success: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Achievement } from "@/lib/api/types";
 
 export interface EditAchievementPanelProps {
@@ -28,15 +28,6 @@ export function EditAchievementPanel({
   const [weight, setWeight] = useState(achievement.weight || 1);
   const [featured, setFeatured] = useState(Boolean(achievement.featured));
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setTitle(achievement.title);
-    setDate(achievement.date);
-    setDetail(achievement.detail);
-    setWeight(achievement.weight || 1);
-    setFeatured(Boolean(achievement.featured));
-    setError(null);
-  }, [achievement]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

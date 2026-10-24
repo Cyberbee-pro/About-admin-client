@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import Image from "next/image";
 import { AsciiSkeleton } from "ascii-reveal";
 
 export interface SkillUploadBoxProps {
@@ -23,17 +22,18 @@ export function SkillUploadBox({
 }: SkillUploadBoxProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const localPreview = React.useMemo(() => {
+    if (!selectedFile) return null;
+    return URL.createObjectURL(selectedFile);
+  }, [selectedFile]);
 
   React.useEffect(() => {
-    if (selectedFile) {
-      const url = URL.createObjectURL(selectedFile);
-      setLocalPreview(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setLocalPreview(null);
-    }
-  }, [selectedFile]);
+    return () => {
+      if (localPreview) {
+        URL.revokeObjectURL(localPreview);
+      }
+    };
+  }, [localPreview]);
 
   const displayImage = localPreview || currentUrl;
 
@@ -114,6 +114,7 @@ export function SkillUploadBox({
         <>
           {displayImage && (
             <div className="absolute inset-0 flex items-center justify-center p-2 opacity-35 pointer-events-none z-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={displayImage}
                 alt="Logo preview"

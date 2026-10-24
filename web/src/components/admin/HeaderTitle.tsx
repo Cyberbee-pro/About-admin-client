@@ -51,7 +51,7 @@ export function HeaderTitle({
       try {
         const data = await getHealth();
         if (isMounted) setHealth(data);
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setHealth({
             status: "offline",
@@ -105,7 +105,7 @@ export function HeaderTitle({
         </nav>
         {subtitle && (
           <span className="font-mono text-xs text-eva-text-muted ml-3">
-            // {subtitle}
+            {"// "}{subtitle}
           </span>
         )}
       </div>

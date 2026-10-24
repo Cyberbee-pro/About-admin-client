@@ -23,7 +23,7 @@ export function AchievementsList({
         All Achievements
       </h2>
 
-      <AsciiReveal loading={loading} revealOnMount={false}>
+      <AsciiReveal loading={loading} revealOnMount={false} speed={0.7}>
         {loading ? (
           <div className="space-y-3 p-2 bg-black/40">
             <AsciiSkeleton lines={4} />

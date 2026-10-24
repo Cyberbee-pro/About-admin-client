@@ -23,7 +23,7 @@ export function SkillsList({
         All Skills
       </h2>
 
-      <AsciiReveal loading={loading} revealOnMount={false}>
+      <AsciiReveal loading={loading} revealOnMount={false} speed={0.7}>
         {loading ? (
           <div className="space-y-3 p-2 bg-black/40">
             <AsciiSkeleton lines={4} />
@@ -48,6 +48,7 @@ export function SkillsList({
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center bg-black/20 overflow-hidden">
                       {skill.logoUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={skill.logoUrl}
                           alt={skill.name}

@@ -1,7 +1,6 @@
 import { apiClient } from "./client";
 import {
   Skill,
-  SkillType,
   CreateSkillInput,
   UpdateSkillInput,
   GetSkillsParams,

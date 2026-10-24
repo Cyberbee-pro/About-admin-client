@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Skill, SkillType } from "@/lib/api/types";
 import SkillUploadBox from "./SkillUploadBox";
 
@@ -29,15 +29,6 @@ export function EditSkillPanel({
   const [featured, setFeatured] = useState(Boolean(skill.featured));
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setName(skill.name);
-    setWeight(skill.weight || 1);
-    setType(skill.type || "tool");
-    setFeatured(Boolean(skill.featured));
-    setLogoFile(null);
-    setError(null);
-  }, [skill]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
