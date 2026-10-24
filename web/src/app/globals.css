@@ -23,6 +23,14 @@
   --eva-surface-border: #3b3d54; /* Surface border stroke */
   --eva-text: #f8f9ff;          /* Crisp bright foreground text */
   --eva-text-muted: #a9adc4;    /* Muted terminal subtext */
+
+  /* ASCII Reveal Theming matching terminal dark theme (#12121b) */
+  --ascii-accent: var(--eva-lime);
+  --ascii-skeleton: var(--eva-lime);
+  --ascii-flash: var(--eva-lime-bright);
+  --ascii-glyph: rgba(82, 208, 83, 0.55);
+  --ascii-font: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --ascii-surface: #12121b;
 }
 
 @theme inline {

@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import { Viewer, Worker, type DocumentLoadEvent } from "@react-pdf-viewer/core";
+import { AsciiSkeleton } from "ascii-reveal";
 
 export interface PdfViewerProps {
   fileUrl: string;
@@ -41,9 +42,12 @@ export function PdfViewer({
         className={`relative w-full bg-black/80 flex items-center justify-center p-4 text-white/50 font-mono text-xs border border-white/10 ${className}`}
         style={{ height: containerHeight, overflowY: "auto" }}
       >
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-[var(--eva-lime)] font-bold">[STANDBY]</span>
-          <span>NO PDF DOCUMENT LOADED</span>
+        <div className="flex flex-col items-center gap-2 text-center select-none">
+          <span className="text-[var(--eva-lime)] font-bold tracking-widest">[STANDBY]</span>
+          <span className="tracking-wider">NO PDF DOCUMENT LOADED</span>
+          <div className="opacity-40 mt-1 pointer-events-none">
+            <AsciiSkeleton variant="terminal" lines={2} widths={["160px", "100px"]} animate={false} />
+          </div>
         </div>
       </div>
     );
@@ -61,9 +65,9 @@ export function PdfViewer({
           fileUrl={fileUrl}
           onDocumentLoad={handleDocumentLoad}
           renderLoader={(percentages: number) => (
-            <div className="flex flex-col items-center justify-center h-full min-h-[160px] text-white/70 font-mono text-xs gap-3">
-              <div className="w-7 h-7 border-2 border-[var(--eva-lime,#39ff14)] border-t-transparent rounded-full animate-spin" />
-              <span className="text-[11px] tracking-wider text-[var(--eva-lime,#39ff14)]">
+            <div className="flex flex-col items-center justify-center h-full min-h-[160px] text-white/70 font-mono text-xs gap-2 p-4 text-center select-none">
+              <AsciiSkeleton variant="terminal" lines={2} widths={["140px", "90px"]} animate />
+              <span className="text-[11px] tracking-wider text-[var(--eva-lime,#39ff14)] mt-1">
                 INITIALIZING VIEWER // {Math.round(percentages)}%
               </span>
             </div>

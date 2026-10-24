@@ -480,5 +480,44 @@ describe("Admin Config Page & Form Mechanics", () => {
       assert.strictEqual(payload.pfpPublicId, "pfp_default");
       assert.strictEqual(payload.pfpUrl, "https://res.cloudinary.com/test/pfp_default.jpg");
     });
+
+    test("ConfigAvatarCard renders ASCII skeleton in fallback placeholder and during upload", () => {
+      // Fallback empty avatar
+      const htmlEmpty = renderToString(
+        React.createElement(ConfigAvatarCard, {
+          pfpUrl: "",
+          onSetAsPfp: () => {},
+          onUploadNewPfp: () => {},
+        })
+      );
+      assert.ok(htmlEmpty.includes("data-ascii-skeleton"), "Empty placeholder must include AsciiSkeleton");
+      assert.ok(htmlEmpty.includes("ars-terminal"), "Must style placeholder with terminal ASCII variant");
+    });
+
+    test("PdfViewer renders ASCII skeleton in standby placeholder", () => {
+      const html = renderToString(
+        React.createElement(PdfViewer, {
+          fileUrl: "",
+        })
+      );
+      assert.ok(html.includes("data-ascii-skeleton"), "Standby view must include AsciiSkeleton");
+      assert.ok(html.includes("ars-terminal"), "Must use terminal ASCII skeleton variant");
+    });
+
+    test("AdminConfigPage wraps configuration dashboard with AsciiReveal loading layer", () => {
+      const html = renderToString(React.createElement(AdminConfigPage));
+      assert.ok(html.includes("ar-overlay"), "Must integrate AsciiReveal overlay in AdminConfigPage");
+    });
+
+    test("ConfigInput fields render with AsciiReveal overlay layer", () => {
+      const html = renderToString(
+        React.createElement(ConfigInput, {
+          label: "Name",
+          value: "Cyberbee pro",
+          onChange: () => {},
+        })
+      );
+      assert.ok(html.includes("ar-overlay"), "ConfigInput field must include AsciiReveal overlay");
+    });
   });
 });

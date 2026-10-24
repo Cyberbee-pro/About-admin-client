@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import Image from "next/image";
+import { AsciiReveal, AsciiSkeleton } from "ascii-reveal";
 import { PfpItem } from "@/lib/api/types";
 
 export interface ConfigAvatarCardProps {
@@ -128,38 +129,46 @@ export function ConfigAvatarCard({
       {/* Frame Container matching pic_frame.svg */}
       <div className="relative w-full aspect-[187/198] shadow-2xl">
         {/* Frame SVG Graphic */}
-        <Image
-          src="/eva dash/pic_frame.svg"
-          alt="Pilot Frame"
-          width={187}
-          height={198}
-          className="absolute inset-0 w-full h-full object-fill pointer-events-none z-0"
-          priority
-        />
+        <AsciiReveal preset="terminal" duration="fast" speed={0.7} className="absolute inset-0 w-full h-full pointer-events-none z-0">
+          <Image
+            src="/eva dash/pic_frame.svg"
+            alt="Pilot Frame"
+            width={187}
+            height={198}
+            className="w-full h-full object-fill pointer-events-none"
+            priority
+            data-ascii="media"
+          />
+        </AsciiReveal>
 
         {/* Inner Content Area Inset cleanly */}
         <div className="absolute top-[6.5%] left-[7%] w-[78%] h-[80%] bg-[#12121b] z-0 overflow-hidden flex items-center justify-center">
           {isUploading ? (
-            <div className="flex flex-col items-center gap-2 text-white/70 font-mono text-xs">
-              <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>TRANSMITTING...</span>
+            <div className="flex flex-col items-center justify-center p-3 text-center gap-2 text-[var(--eva-lime)] font-mono text-xs select-none">
+              <AsciiSkeleton variant="terminal" rows={3} width="110px" height="36px" animate />
+              <span className="tracking-widest text-[11px] text-white/80 animate-pulse">[PROCESSING_UPLOAD]</span>
             </div>
           ) : hasDisplayUrl ? (
-            <img
-              src={currentItem.url}
-              alt="Pilot Avatar"
-              className="w-full h-full object-cover"
-              onError={() => {
-                if (currentItem?.url) {
-                  setBrokenUrls((prev) => ({ ...prev, [currentItem.url]: true }));
-                }
-              }}
-            />
+            <AsciiReveal preset="terminal" duration="fast" speed={0.7} className="w-full h-full">
+              <img
+                src={currentItem.url}
+                alt="Pilot Avatar"
+                className="w-full h-full object-cover"
+                onError={() => {
+                  if (currentItem?.url) {
+                    setBrokenUrls((prev) => ({ ...prev, [currentItem.url]: true }));
+                  }
+                }}
+              />
+            </AsciiReveal>
           ) : (
             <div
-              className="w-full h-full bg-[#12121b] flex flex-col items-center justify-center p-3 text-center select-none"
+              className="w-full h-full bg-[#12121b] flex flex-col items-center justify-center p-3 text-center select-none gap-2"
               data-testid="no-pfp-placeholder"
             >
+              <div className="opacity-35 pointer-events-none">
+                <AsciiSkeleton variant="terminal" rows={4} width="90px" height="42px" animate={false} />
+              </div>
               <span className="font-mono text-xs text-eva-text-muted tracking-wider">
                 No pfp in db
               </span>
@@ -208,19 +217,22 @@ export function ConfigAvatarCard({
           title="Upload new avatar image"
           aria-label="Upload New Avatar"
         >
-          <svg
-            className="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
+          <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-flex items-center">
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              data-ascii="media"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </AsciiReveal>
         </button>
 
         {/* Download Icon [↓] */}
@@ -232,19 +244,22 @@ export function ConfigAvatarCard({
           title="Download / View full avatar"
           aria-label="Download Current Avatar"
         >
-          <svg
-            className="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
+          <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-flex items-center">
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              data-ascii="media"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </AsciiReveal>
         </button>
       </div>
 

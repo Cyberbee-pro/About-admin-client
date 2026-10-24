@@ -9,6 +9,7 @@ import { ConfigInput, ValidationResult } from "./components/ConfigInput";
 import { ConfigResumeCard } from "./components/ConfigResumeCard";
 import { ConfigAvatarCard } from "./components/ConfigAvatarCard";
 import LiquidButton from "@/components/LiquidButton";
+import { AsciiReveal } from "ascii-reveal";
 
 const PatternWaves = dynamic(() => import("@/components/designs/PatternWaves"), {
   ssr: false,
@@ -475,101 +476,110 @@ export default function AdminConfigPage() {
         )}
 
         {/* Center Grid: Form Fields & Resume on Left, Avatar Dossier on Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          {/* Left Column: Form Inputs & Resume (span 8) */}
-          <div className="lg:col-span-8 flex flex-col gap-4">
-            {/* Primary Config Fields matching backend SiteConfig schema */}
-            <div className="flex flex-col gap-2.5 sm:gap-3">
-              {/* Name */}
-              <ConfigInput
-                id="cfg-name"
-                label="Name"
-                value={name}
-                onChange={setName}
-                placeholder="Cyberbee pro"
-                validator={validateName}
-                disabled={isLoading || isSaving}
-                data-testid="config-name-input"
-              />
+        <AsciiReveal
+          loading={isLoading}
+          preset="terminal"
+          duration="fast"
+          speed={0.7}
+          revealOnMount={false}
+          className="w-full"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            {/* Left Column: Form Inputs & Resume (span 8) */}
+            <div className="lg:col-span-8 flex flex-col gap-4">
+              {/* Primary Config Fields matching backend SiteConfig schema */}
+              <div className="flex flex-col gap-2.5 sm:gap-3">
+                {/* Name */}
+                <ConfigInput
+                  id="cfg-name"
+                  label="Name"
+                  value={name}
+                  onChange={setName}
+                  placeholder="Cyberbee pro"
+                  validator={validateName}
+                  disabled={isLoading || isSaving}
+                  data-testid="config-name-input"
+                />
 
-              {/* Job */}
-              <ConfigInput
-                id="cfg-job"
-                label="Job"
-                value={jobTitlesStr}
-                onChange={setJobTitlesStr}
-                placeholder="Full-stack dev / Game dev / Low Level dev"
-                validator={validateJob}
-                disabled={isLoading || isSaving}
-                data-testid="config-job-input"
-              />
+                {/* Job */}
+                <ConfigInput
+                  id="cfg-job"
+                  label="Job"
+                  value={jobTitlesStr}
+                  onChange={setJobTitlesStr}
+                  placeholder="Full-stack dev / Game dev / Low Level dev"
+                  validator={validateJob}
+                  disabled={isLoading || isSaving}
+                  data-testid="config-job-input"
+                />
 
-              {/* Bio / Status Message */}
-              <ConfigInput
-                id="cfg-bio"
-                label="Bio"
-                value={bio}
-                onChange={setBio}
-                placeholder="Limited probabilities Infinite Possibilities"
-                validator={validateBio}
-                disabled={isLoading || isSaving}
-                data-testid="config-bio-input"
-              />
+                {/* Bio / Status Message */}
+                <ConfigInput
+                  id="cfg-bio"
+                  label="Bio"
+                  value={bio}
+                  onChange={setBio}
+                  placeholder="Limited probabilities Infinite Possibilities"
+                  validator={validateBio}
+                  disabled={isLoading || isSaving}
+                  data-testid="config-bio-input"
+                />
 
-              {/* Resume Drive URL */}
-              <ConfigInput
-                id="cfg-resume-url"
-                label="Resume URL"
-                type="text"
-                value={resumeUrl}
-                onChange={setResumeUrl}
-                placeholder="https://drive.google.com/file/d/..."
-                validator={validateResumeUrl}
-                disabled={isLoading || isSaving}
-                data-testid="config-resume-url-input"
-              />
+                {/* Resume Drive URL */}
+                <ConfigInput
+                  id="cfg-resume-url"
+                  label="Resume URL"
+                  type="text"
+                  value={resumeUrl}
+                  onChange={setResumeUrl}
+                  placeholder="https://drive.google.com/file/d/..."
+                  validator={validateResumeUrl}
+                  disabled={isLoading || isSaving}
+                  data-testid="config-resume-url-input"
+                />
 
-              {/* Summary with expandable chevron matching screenshot */}
-              <ConfigInput
-                id="cfg-summary"
-                label="Summary"
-                value={summary}
-                onChange={setSummary}
-                placeholder="Motivated developer ......"
-                validator={validateSummary}
-                isExpandable={true}
-                disabled={isLoading || isSaving}
-                data-testid="config-summary-input"
-              />
+                {/* Summary with expandable chevron matching screenshot */}
+                <ConfigInput
+                  id="cfg-summary"
+                  label="Summary"
+                  value={summary}
+                  onChange={setSummary}
+                  placeholder="Motivated developer ......"
+                  validator={validateSummary}
+                  isExpandable={true}
+                  disabled={isLoading || isSaving}
+                  data-testid="config-summary-input"
+                />
+              </div>
+
+              {/* Resume Card (Bottom Left) matching screenshot */}
+              <div className="mt-3 sm:mt-4">
+                <ConfigResumeCard
+                  resumeUrl={resumeUrl}
+                  onUpdateResumeUrl={(newUrl) => {
+                    setResumeUrl(newUrl);
+                    setSelectedResumeFile(null);
+                  }}
+                  onUploadResumeFile={handleUploadResumeFile}
+                  stagedFileName={selectedResumeFile ? selectedResumeFile.name : undefined}
+                  disabled={isLoading || isSaving}
+                />
+              </div>
             </div>
 
-            {/* Resume Card (Bottom Left) matching screenshot */}
-            <div className="mt-3 sm:mt-4">
-              <ConfigResumeCard
-                resumeUrl={resumeUrl}
-                onUpdateResumeUrl={(newUrl) => {
-                  setResumeUrl(newUrl);
-                  setSelectedResumeFile(null);
-                }}
-                onUploadResumeFile={handleUploadResumeFile}
-                stagedFileName={selectedResumeFile ? selectedResumeFile.name : undefined}
+            {/* Right Column: Framed Avatar with Carousel & Set as PFP Button (span 4) */}
+            <div className="lg:col-span-4 flex flex-col items-center lg:items-end w-full">
+              <ConfigAvatarCard
+                pfpUrl={pfpUrl}
+                currentPfpUrl={pfpUrl}
+                pfpHistory={pfpHistory}
+                onSetAsPfp={handleSetAsPfp}
+                onUploadNewPfp={handleUploadNewPfp}
                 disabled={isLoading || isSaving}
               />
             </div>
           </div>
-
-          {/* Right Column: Framed Avatar with Carousel & Set as PFP Button (span 4) */}
-          <div className="lg:col-span-4 flex flex-col items-center lg:items-end w-full">
-            <ConfigAvatarCard
-              pfpUrl={pfpUrl}
-              currentPfpUrl={pfpUrl}
-              pfpHistory={pfpHistory}
-              onSetAsPfp={handleSetAsPfp}
-              onUploadNewPfp={handleUploadNewPfp}
-              disabled={isLoading || isSaving}
-            />
-          </div>
-        </div>
+        </AsciiReveal>
       </div>
 
       {/* Full-width Hazard Strip Footer matching screenshot */}

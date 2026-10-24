@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AsciiReveal } from "ascii-reveal";
 import { HealthResponse } from "@/lib/api/types";
 import { getHealth } from "@/lib/api/healthService";
 
@@ -34,18 +35,22 @@ export function getMemoryThreshold(mb: number) {
 export function IndicatorNormH({ isConnected }: { isConnected: boolean }) {
   const color = isConnected ? "var(--eva-lime)" : "var(--eva-red)";
   return (
-    <svg width="15" height="6" viewBox="0 0 15 6" fill="none">
-      <rect width="14.4766" height="6.01041" fill={color} />
-    </svg>
+    <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-block">
+      <svg width="15" height="6" viewBox="0 0 15 6" fill="none" data-ascii="media">
+        <rect width="14.4766" height="6.01041" fill={color} />
+      </svg>
+    </AsciiReveal>
   );
 }
 
 export function IndicatorHaz({ isHealthy }: { isHealthy: boolean }) {
   const color = isHealthy ? "var(--eva-lime)" : "var(--eva-red)";
   return (
-    <svg width="15" height="6" viewBox="0 0 15 6" fill="none">
-      <rect width="14.8636" height="5.9559" fill={color} />
-    </svg>
+    <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-block">
+      <svg width="15" height="6" viewBox="0 0 15 6" fill="none" data-ascii="media">
+        <rect width="14.8636" height="5.9559" fill={color} />
+      </svg>
+    </AsciiReveal>
   );
 }
 
@@ -138,13 +143,15 @@ export function CoreStatusBox({
       <span className="sr-only">online db mem</span>
       <div className="relative w-full h-full flex items-center justify-center overflow-visible">
         {/* Master Inline SVG with transparent background and expanded viewBox for zero bottom clipping */}
-        <svg
-          viewBox="0 0 101 175"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-          className="w-auto h-full max-h-[280px] object-contain overflow-visible"
-        >
+        <AsciiReveal preset="terminal" duration="fast" speed={0.7} className="w-auto h-full max-h-[280px] flex items-center justify-center overflow-visible">
+          <svg
+            viewBox="0 0 101 175"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            className="w-auto h-full max-h-[280px] object-contain overflow-visible"
+            data-ascii="media"
+          >
           {/* Circuit Lines */}
           <path
             d="M45.7736 0V39.6278L16.4204 55.178V60.6958V64.2071V73.7379M8.4602 91.2945H0.5V136.942H32.8383V155M71.1468 155V114.871H16.4204V109.854V106.343V87.2816V83.2686V73.7379M16.4204 73.7379H100.5"
@@ -316,6 +323,7 @@ export function CoreStatusBox({
             </clipPath>
           </defs>
         </svg>
+        </AsciiReveal>
       </div>
     </div>
   );

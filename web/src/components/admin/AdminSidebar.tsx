@@ -3,6 +3,7 @@
 import LiquidButton from "@/components/LiquidButton";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { AsciiReveal } from "ascii-reveal";
 
 interface NavItem {
   name: string;
@@ -31,14 +32,17 @@ export function AdminSidebar() {
       {/* 1. Branding Header: ITZEUL.svg strictly clean with ZERO glow and NO yellow accent */}
       <div className="h-20 px-6 flex items-center gap-3.5 shrink-0">
         <div className="relative w-9 h-9 shrink-0 flex items-center justify-center">
-          <Image
-            src="/eva dash/ITZEUL.svg"
-            alt="ITZEUL Logo"
-            width={36}
-            height={36}
-            className="w-9 h-9 object-contain"
-            priority
-          />
+          <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-flex">
+            <Image
+              src="/eva dash/ITZEUL.svg"
+              alt="ITZEUL Logo"
+              width={36}
+              height={36}
+              className="w-9 h-9 object-contain"
+              priority
+              data-ascii="media"
+            />
+          </AsciiReveal>
         </div>
         <span className="font-exo2 text-white font-bold text-2xl tracking-wide">
           Dashboard
