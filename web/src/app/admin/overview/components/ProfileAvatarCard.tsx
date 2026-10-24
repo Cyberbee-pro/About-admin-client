@@ -71,7 +71,7 @@ export function ProfileAvatarCard({
         {/* Inner Content Area (Inset cleanly inside the orange border & hazard bars) */}
         <div className="absolute top-[6.5%] left-[7%] w-[78%] h-[80%] bg-[#12121b] z-0 overflow-hidden flex items-center justify-center">
           {loading ? (
-            <div className="flex flex-col items-center justify-center p-3 text-center gap-2 text-[var(--eva-lime)] font-mono text-xs select-none">
+            <div className="flex flex-col items-center justify-center p-3 text-center gap-2 text-white/80 font-mono text-xs select-none">
               <AsciiSkeleton variant="terminal" rows={3} width="100px" height="36px" animate />
               <span className="tracking-widest text-[11px] text-white/80 animate-pulse">[SYNCING...]</span>
             </div>

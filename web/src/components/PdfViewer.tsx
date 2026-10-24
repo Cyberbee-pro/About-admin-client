@@ -67,7 +67,7 @@ export function PdfViewer({
           renderLoader={(percentages: number) => (
             <div className="flex flex-col items-center justify-center h-full min-h-[160px] text-white/70 font-mono text-xs gap-2 p-4 text-center select-none">
               <AsciiSkeleton variant="terminal" lines={2} widths={["140px", "90px"]} animate />
-              <span className="text-[11px] tracking-wider text-[var(--eva-lime,#39ff14)] mt-1">
+              <span className="text-[11px] tracking-wider text-white/80 mt-1">
                 INITIALIZING VIEWER // {Math.round(percentages)}%
               </span>
             </div>

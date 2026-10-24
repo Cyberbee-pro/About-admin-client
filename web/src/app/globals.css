@@ -27,8 +27,7 @@
   /* ASCII Reveal Theming matching terminal dark theme (#12121b) */
   --ascii-accent: var(--eva-lime);
   --ascii-skeleton: var(--eva-lime);
-  --ascii-flash: var(--eva-lime-bright);
-  --ascii-glyph: rgba(82, 208, 83, 0.55);
+  --ascii-glyph: rgba(255, 255, 255, 0.45);
   --ascii-font: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --ascii-surface: #12121b;
 }
