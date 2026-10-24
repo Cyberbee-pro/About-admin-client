@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { AsciiReveal } from "ascii-reveal";
 
 export interface ValidationResult {
   valid: boolean;
@@ -65,15 +66,16 @@ export function ConfigInput({
     : "border-[var(--eva-orange)]";
 
   return (
-    <div className="flex flex-col gap-0.5 w-full select-none" data-testid={dataTestId}>
-      {/* Label and Input Row */}
-      <div className="flex flex-wrap items-baseline gap-2 text-xl md:text-2xl font-exo2 text-white">
-        <label
-          htmlFor={id}
-          className="font-normal text-white shrink-0 tracking-wide select-none min-w-[70px]"
-        >
-          {`${label} :`}
-        </label>
+    <AsciiReveal preset="terminal" duration="fast" speed={0.7} className="w-full">
+      <div className="flex flex-col gap-0.5 w-full select-none" data-testid={dataTestId}>
+        {/* Label and Input Row */}
+        <div className="flex flex-wrap items-baseline gap-2 text-xl md:text-2xl font-exo2 text-white">
+          <label
+            htmlFor={id}
+            className="font-normal text-white shrink-0 tracking-wide select-none min-w-[70px]"
+          >
+            {`${label} :`}
+          </label>
 
         {/* Input Container */}
         <div className="relative flex items-center gap-2 flex-1 min-w-[240px]">
@@ -225,6 +227,7 @@ export function ConfigInput({
         </div>
       )}
     </div>
+  </AsciiReveal>
   );
 }
 

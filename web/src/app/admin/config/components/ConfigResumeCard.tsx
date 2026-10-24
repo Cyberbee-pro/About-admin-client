@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { AsciiReveal } from "ascii-reveal";
 import { PdfViewer } from "@/components/PdfViewer";
 import { getConfig } from "@/lib/api/configService";
 
@@ -174,19 +175,22 @@ export function ConfigResumeCard({
               className="cursor-target p-1 hover:text-eva-lime hover:scale-110 active:scale-95 transition-all text-white/90"
               aria-label="Upload Resume"
             >
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
+              <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-flex items-center">
+                <svg
+                  className="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  data-ascii="media"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </AsciiReveal>
             </button>
           )}
 
@@ -202,13 +206,16 @@ export function ConfigResumeCard({
             }`}
             aria-label="Download Resume"
           >
-            <Image
-              src="/eva dash/download_butt.svg"
-              alt="Download Resume"
-              width={20}
-              height={20}
-              className="w-5 h-5 object-contain"
-            />
+            <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-flex items-center">
+              <Image
+                src="/eva dash/download_butt.svg"
+                alt="Download Resume"
+                width={20}
+                height={20}
+                className="w-5 h-5 object-contain"
+                data-ascii="media"
+              />
+            </AsciiReveal>
           </a>
 
           {/* External Link icon [↗] - Keeps activeResumeUrl for external Drive viewing */}
@@ -222,19 +229,22 @@ export function ConfigResumeCard({
             }`}
             aria-label="Open Resume in new tab"
           >
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
+            <AsciiReveal as="span" preset="terminal" duration="fast" speed={0.7} className="inline-flex items-center">
+              <svg
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                data-ascii="media"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </AsciiReveal>
           </a>
         </div>
       </div>
@@ -248,40 +258,42 @@ export function ConfigResumeCard({
       {canEditUrl && (
         <div className="px-3 py-2 bg-black/60 border-t border-white/10 flex items-center justify-between text-xs font-mono">
           {isEditingUrl ? (
-            <div className="flex items-center gap-2 w-full">
-              <input
-                type="text"
-                name="resume-url"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                data-form-type="other"
-                data-1p-ignore="true"
-                data-lpignore="true"
-                value={tempUrl}
-                onChange={(e) => setTempUrl(e.target.value)}
-                placeholder="https://drive.google.com/..."
-                className="cursor-target bg-transparent border-b border-[var(--eva-lime)] text-white text-xs font-mono flex-1 outline-none px-1 py-0.5"
-              />
-              <button
-                type="button"
-                onClick={handleSaveUrl}
-                className="cursor-target text-[var(--eva-lime)] hover:underline"
-              >
-                SAVE
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setTempUrl(activeResumeUrl);
-                  setIsEditingUrl(false);
-                }}
-                className="cursor-target text-white/50 hover:underline"
-              >
-                CANCEL
-              </button>
-            </div>
+            <AsciiReveal preset="terminal" duration="fast" speed={0.7} className="w-full">
+              <div className="flex items-center gap-2 w-full">
+                <input
+                  type="text"
+                  name="resume-url"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  data-form-type="other"
+                  data-1p-ignore="true"
+                  data-lpignore="true"
+                  value={tempUrl}
+                  onChange={(e) => setTempUrl(e.target.value)}
+                  placeholder="https://drive.google.com/..."
+                  className="cursor-target bg-transparent border-b border-[var(--eva-lime)] text-white text-xs font-mono flex-1 outline-none px-1 py-0.5"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveUrl}
+                  className="cursor-target text-[var(--eva-lime)] hover:underline"
+                >
+                  SAVE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempUrl(activeResumeUrl);
+                    setIsEditingUrl(false);
+                  }}
+                  className="cursor-target text-white/50 hover:underline"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </AsciiReveal>
           ) : (
             <div className="flex items-center justify-between w-full">
               <span className="truncate max-w-[280px] text-white/60 text-[10px]">

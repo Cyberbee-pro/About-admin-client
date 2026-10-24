@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { AsciiReveal, AsciiSkeleton } from "ascii-reveal";
 import LiquidButton from "@/components/LiquidButton";
 
 const TargetCursor = dynamic(() => import("@/components/designs/TargetCursor"), {
@@ -115,7 +116,7 @@ export default function ErrorScreen({
 
       {/* Top Header / Status Indicator Bar */}
       <header className="relative z-10 w-full px-6 py-5 sm:px-10 sm:py-6 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
+        <AsciiReveal as="div" preset="terminal" duration="fast" speed={0.7} className="flex items-center gap-1.5">
           <span
             className="font-exo2 font-bold text-base sm:text-lg md:text-xl text-eva-red select-none leading-none"
             aria-hidden="true"
@@ -125,83 +126,89 @@ export default function ErrorScreen({
           <span className="font-exo2 font-semibold text-xs sm:text-sm tracking-[0.25em] text-eva-red uppercase leading-none">
             {`NERV SYSTEM ALERT // CODE: ${errorInfo.code}`}
           </span>
-        </div>
+        </AsciiReveal>
         <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-eva-text-muted">
           <span>MAGI_SYS: OFF-NOMINAL</span>
           <span className="text-eva-surface-border">|</span>
-          <span>PROTOCOL_ERR</span>
+          <div className="flex items-center gap-2">
+            <span>PROTOCOL_ERR</span>
+            <AsciiSkeleton variant="terminal" lines={1} widths={["36px"]} animate />
+          </div>
         </div>
       </header>
 
       {/* Central Content Area */}
       <section className="relative z-10 flex-1 flex items-center px-6 sm:px-12 md:px-20 lg:px-28 py-10">
-        <div className="flex flex-col sm:flex-row items-start gap-5 sm:gap-7 md:gap-9 max-w-4xl">
-          {/* Circular Motif (ITZEUL.svg) Positioned to the Left of Text */}
-          <div className="shrink-0 mt-1 sm:mt-2">
-            <Image
-              src="/common/ITZEUL.svg"
-              alt="ITZEUL Circular Motif"
-              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain select-none"
-              width={96}
-              height={96}
-              priority
-              data-testid="itzeul-motif"
-            />
-          </div>
-
-          {/* Typography Text Block */}
-          <div className="flex flex-col text-left">
-            {/* Line 1: Err [Code] : */}
-            <span
-              className="font-exo2 font-semibold text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-wider text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
-              data-testid="error-code-line"
-            >
-              {`Err ${errorInfo.code} :`}
-            </span>
-
-            {/* Line 2: Error Title */}
-            <h1
-              className="font-exo2 font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight text-white mt-1 sm:mt-2 drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]"
-              data-testid="error-title-line"
-            >
-              {errorInfo.title}
-            </h1>
-
-            {/* Line 3: Descriptive Message */}
-            <p
-              className="font-exo2 text-base sm:text-lg md:text-xl lg:text-2xl text-eva-text-muted mt-2 sm:mt-4 leading-relaxed max-w-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
-              data-testid="error-desc-line"
-            >
-              {errorInfo.description}
-            </p>
-
-            {/* Interactive Actions / Navigation */}
-            <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
-              {reset && (
-                <LiquidButton
-                  type="button"
-                  onClick={reset}
-                  variant="primary"
-                  data-testid="error-retry-btn"
-                >
-                  Retry Operation
-                </LiquidButton>
-              )}
-
-              {showHomeButton && (
-                <LiquidButton
-                  href={homeHref}
-                  variant="secondary"
-                  data-testid="error-home-link"
-                >
-                  {homeText}
-                </LiquidButton>
-              )}
+        <AsciiReveal preset="terminal" duration="fast" speed={0.7} className="w-full max-w-4xl">
+          <div className="flex flex-col sm:flex-row items-start gap-5 sm:gap-7 md:gap-9 max-w-4xl">
+            {/* Circular Motif (ITZEUL.svg) Positioned to the Left of Text */}
+            <div className="shrink-0 mt-1 sm:mt-2">
+              <Image
+                src="/common/ITZEUL.svg"
+                alt="ITZEUL Circular Motif"
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain select-none"
+                width={96}
+                height={96}
+                priority
+                data-testid="itzeul-motif"
+                data-ascii="media"
+              />
             </div>
 
-            {children && <div className="mt-6">{children}</div>}
+            {/* Typography Text Block */}
+            <div className="flex flex-col text-left">
+              {/* Line 1: Err [Code] : */}
+              <span
+                className="font-exo2 font-semibold text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-wider text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+                data-testid="error-code-line"
+              >
+                {`Err ${errorInfo.code} :`}
+              </span>
+
+              {/* Line 2: Error Title */}
+              <h1
+                className="font-exo2 font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight text-white mt-1 sm:mt-2 drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]"
+                data-testid="error-title-line"
+              >
+                {errorInfo.title}
+              </h1>
+
+              {/* Line 3: Descriptive Message */}
+              <p
+                className="font-exo2 text-base sm:text-lg md:text-xl lg:text-2xl text-eva-text-muted mt-2 sm:mt-4 leading-relaxed max-w-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+                data-testid="error-desc-line"
+              >
+                {errorInfo.description}
+              </p>
+
+              {/* Interactive Actions / Navigation */}
+              <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
+                {reset && (
+                  <LiquidButton
+                    type="button"
+                    onClick={reset}
+                    variant="primary"
+                    data-testid="error-retry-btn"
+                  >
+                    Retry Operation
+                  </LiquidButton>
+                )}
+
+                {showHomeButton && (
+                  <LiquidButton
+                    href={homeHref}
+                    variant="secondary"
+                    data-testid="error-home-link"
+                  >
+                    {homeText}
+                  </LiquidButton>
+                )}
+              </div>
+
+              {children && <div className="mt-6">{children}</div>}
+            </div>
           </div>
-        </div>
+        </AsciiReveal>
       </section>
 
       {/* Hazard Strip Footer */}

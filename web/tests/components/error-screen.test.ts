@@ -183,6 +183,10 @@ describe("Evangelion Error Screen & Dynamic Routes", () => {
         })
       );
 
+      // Verify AsciiReveal loader overlay and skeleton integration
+      assert.ok(html.includes("ar-overlay"), "HTML must integrate AsciiReveal overlay on error screen");
+      assert.ok(html.includes("data-ascii-skeleton"), "HTML must integrate AsciiSkeleton indicator");
+
       // Verify Line 1: Err 400 :
       assert.ok(html.includes("Err 400 :"), "HTML must render Line 1: Err 400 :");
       // Verify Line 2: Bad Request
