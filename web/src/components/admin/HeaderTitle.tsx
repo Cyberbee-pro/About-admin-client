@@ -17,7 +17,7 @@ const SEGMENT_NAME_MAP: Record<string, string> = {
   admin: "Dashboard",
   overview: "Overview",
   config: "Configuration",
-  "skills-achievements": "Skills & Achievements",
+  "skills-achievements": "skills and achievements",
   skills: "Skills",
   achievements: "Achievements",
   certificates: "Certificates",
@@ -94,7 +94,7 @@ export function HeaderTitle({
       <div className="flex items-center gap-2">
         <nav
           aria-label="Breadcrumb"
-          className="flex items-center gap-2.5 font-exo2 font-mono text-xl font-normal text-white tracking-wide uppercase"
+          className="flex items-center gap-2.5 font-exo2 font-mono text-xl font-normal text-white tracking-wide"
         >
           {resolvedBreadcrumbs.map((crumb, idx) => (
             <span key={`${crumb}-${idx}`} className="flex items-center gap-2.5">

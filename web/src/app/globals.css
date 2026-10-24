@@ -178,3 +178,22 @@ body {
     transition: none !important;
   }
 }
+
+/* Custom Scrollbar matching Wireframe Design: Mint Track (#6bffb6) & Purple Thumb (#7b47dc) */
+.eva-custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #7b47dc #6bffb6;
+}
+.eva-custom-scrollbar::-webkit-scrollbar {
+  width: 14px;
+}
+.eva-custom-scrollbar::-webkit-scrollbar-track {
+  background: #6bffb6;
+}
+.eva-custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #7b47dc;
+  border-radius: 0px;
+}
+.eva-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9d7bb0;
+}

@@ -13,7 +13,7 @@ Edit the "Route" column to match the real app routes. Rows marked `TODO` need yo
 | Certificates | TODO | `certificates/Cert 1.png`, `certificates/Cert 2.png` | Implement both as parts or states of one page unless told otherwise. |
 | Experiences | TODO | `experiences/EXP 1.png`, `experiences/EXP 2.png`, `experiences/EXP 3.png` | Implement the full set. |
 | Logs | TODO | `logs/Log - compact.png`, `logs/Log - detail.png` | Likely two views (compact list and detail) of the same page. |
-| Skills and achievements | TODO | `skills and achivements/Skill and achivement.png`, `Skill and achivement 2.png`, `Skill and achivement 3.png` | Folder and file names use the spelling "achivement". Keep paths exact. |
+| Skills and achievements | `/admin/skills-achievements` | `skills and achivements/Skill and achivement.png`, `Skill and achivement 2.png`, `Skill and achivement 3.png` | IMPLEMENTED. Complete 3-state management (base, skill edit, achievement edit) with PatternWaves background, custom scrollbars, and ASCII reveal loading. |
 | Projects | TODO | none yet | `projects/` is empty. Ask before building. |
 | 400 Bad Request | n/a | `err/40X/400.png` | |
 | 401 Unauthorized | n/a | `err/40X/401.png` | |

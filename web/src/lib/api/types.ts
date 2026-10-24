@@ -206,9 +206,10 @@ export interface CertificateFiles {
 export interface Achievement {
   _id: string;
   title: string;
-  date: string; // e.g. "October 2024"
+  date: string; // e.g. "October 2024" or "mm/yyyy"
   detail: string;
   weight: number;
+  featured?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -218,6 +219,7 @@ export interface CreateAchievementInput {
   date: string;
   detail: string;
   weight?: number;
+  featured?: boolean;
 }
 
 export type UpdateAchievementInput = Partial<CreateAchievementInput>;
