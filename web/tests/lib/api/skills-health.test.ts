@@ -55,6 +55,29 @@ describe("Skill & Health API Service Modules", () => {
       assert.strictEqual(res.data[0].name, "TypeScript");
     });
 
+    test("getSkills supports category query filter by type", async () => {
+      let capturedUrl = "";
+
+      global.fetch = (async (input: RequestInfo | URL) => {
+        capturedUrl = String(input);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            count: 1,
+            data: [
+              { _id: "s1", name: "TypeScript", type: "language", weight: 95 },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }) as typeof fetch;
+
+      const res = await getSkills({ type: "language" });
+      assert.strictEqual(capturedUrl, "https://api.about.example.com/api/v1/skills?type=language");
+      assert.strictEqual(res.success, true);
+      assert.strictEqual(res.data[0].type, "language");
+    });
+
     test("getSkillById calls GET /api/v1/skills/:id", async () => {
       let capturedUrl = "";
 
@@ -93,12 +116,43 @@ describe("Skill & Health API Service Modules", () => {
         );
       }) as typeof fetch;
 
-      const res = await createSkill({ name: "Kotlin", weight: 85, featured: true });
+      const res = await createSkill({ name: "Kotlin", type: "language", weight: 85, featured: true });
       assert.strictEqual(capturedUrl, "https://api.about.example.com/api/v1/skills");
       assert.strictEqual(capturedAuth, "Bearer mock-backend-secret");
       const parsed = JSON.parse(capturedBody);
       assert.strictEqual(parsed.name, "Kotlin");
+      assert.strictEqual(parsed.type, "language");
       assert.strictEqual(parsed.weight, 85);
+      assert.strictEqual(res.success, true);
+    });
+
+    test("createSkill appends type to FormData when file is attached", async () => {
+      let capturedUrl = "";
+      let capturedFormData: FormData | null = null;
+
+      global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        capturedUrl = String(input);
+        capturedFormData = init?.body as FormData;
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: { _id: "new-s", name: "Next.js", type: "framework", weight: 90 },
+          }),
+          { status: 201, headers: { "Content-Type": "application/json" } }
+        );
+      }) as typeof fetch;
+
+      const dummyBlob = new Blob(["fake-image"], { type: "image/png" });
+      const res = await createSkill(
+        { name: "Next.js", type: "framework", weight: 90 },
+        { logoUrl: dummyBlob }
+      );
+      assert.strictEqual(capturedUrl, "https://api.about.example.com/api/v1/skills");
+      assert.ok(capturedFormData);
+      const fd = capturedFormData as unknown as FormData;
+      assert.strictEqual(fd.get("name"), "Next.js");
+      assert.strictEqual(fd.get("type"), "framework");
+      assert.strictEqual(fd.get("weight"), "90");
       assert.strictEqual(res.success, true);
     });
 

@@ -63,6 +63,7 @@ data class Project(
     val image: String,
     val featured: Boolean = false,
     val tags: List<String> = emptyList(),
+    val skills: List<String> = emptyList(), // ObjectId refs to Skill
     val startDate: String,
     val endDate: String? = null,
     val status: ProjectStatus = ProjectStatus.PLANNING,
@@ -80,7 +81,126 @@ data class Project(
 
 ---
 
-## 2. Site Configuration & Logs
+## 2. Skill Models
+
+```kotlin
+package com.cyberbee.about.data.model
+
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+
+@Serializable
+enum class SkillType {
+    @SerialName("tool") TOOL,
+    @SerialName("language") LANGUAGE,
+    @SerialName("framework") FRAMEWORK
+}
+
+@Serializable
+data class Skill(
+    @SerialName("_id") val id: String,
+    val name: String,
+    val type: SkillType = SkillType.TOOL,
+    val logoUrl: String? = null,
+    val featured: Boolean = false,
+    val weight: Int = 0,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
+```
+
+---
+
+## 3. Certificate & Achievement Models
+
+```kotlin
+package com.cyberbee.about.data.model
+
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+
+@Serializable
+data class Certificate(
+    @SerialName("_id") val id: String,
+    val title: String,
+    val description: String = "",
+    val link: String? = null,
+    val mediaUrl: String,
+    val organization: String,
+    val weight: Int = 0,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
+
+@Serializable
+data class Achievement(
+    @SerialName("_id") val id: String,
+    val title: String,
+    val date: String, // e.g. "October 2024"
+    val detail: String,
+    val weight: Int = 0,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
+```
+
+---
+
+## 4. Experience Models
+
+```kotlin
+package com.cyberbee.about.data.model
+
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+
+@Serializable
+enum class ExperienceTag {
+    @SerialName("focus") FOCUS,
+    @SerialName("extracurricular") EXTRACURRICULAR
+}
+
+@Serializable
+enum class ExperienceType {
+    @SerialName("internship") INTERNSHIP,
+    @SerialName("contract") CONTRACT,
+    @SerialName("freelance") FREELANCE,
+    @SerialName("full_time") FULL_TIME,
+    @SerialName("part_time") PART_TIME,
+    @SerialName("club") CLUB,
+    @SerialName("volunteering") VOLUNTEERING
+}
+
+@Serializable
+data class ExperiencePosition(
+    @SerialName("_id") val id: String? = null,
+    val position: String,
+    val description: String,
+    val startDate: String,
+    val endDate: String? = null,
+    val mediaUrls: List<String> = emptyList(),
+    val certificateUrls: List<String> = emptyList(),
+    val isCurrent: Boolean = false
+)
+
+@Serializable
+data class Experience(
+    @SerialName("_id") val id: String,
+    val organization: String,
+    val tag: ExperienceTag = ExperienceTag.FOCUS,
+    val type: ExperienceType = ExperienceType.FULL_TIME,
+    val iconUrl: String? = null,
+    val skills: List<String> = emptyList(), // ObjectId refs to Skill
+    val weight: Int = 0,
+    val positions: List<ExperiencePosition> = emptyList(),
+    val createdAt: String? = null,
+    val updatedAt: String? = null
+)
+```
+
+---
+
+## 5. Site Configuration & Logs
 
 ```kotlin
 import kotlinx.serialization.Serializable
