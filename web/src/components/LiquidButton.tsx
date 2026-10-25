@@ -98,6 +98,7 @@ export default function LiquidButton({
       setIsFilling(true);
     }
     if (isControlled && !propActive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsClickActive(false);
     }
     prevActiveRef.current = propActive;
@@ -118,7 +119,7 @@ export default function LiquidButton({
       return;
     }
 
-    if (stayActiveOnClick || stayActive || isCurrentlyActive || href) {
+    if (stayActiveOnClick || stayActive) {
       setIsClickActive(true);
       setIsFilling(true);
     }

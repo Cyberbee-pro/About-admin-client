@@ -241,5 +241,23 @@ describe("LiquidButton Component", () => {
     assert.ok(html.includes("bg-eva-lime"), "Must render hover green liquid layer");
     assert.ok(html.includes("translate-y-full"), "Hover green liquid starts translated for hover entry");
   });
+
+  test("does not activate persistent active state on click when href is provided without stayActiveOnClick", () => {
+    // Render an anchor with href without stayActiveOnClick or isActive
+    const htmlLink = renderToString(
+      React.createElement(
+        LiquidButton,
+        {
+          href: "https://shibraj.dev",
+          variant: "terminal",
+        },
+        "External Link"
+      )
+    );
+
+    // Initial render must not include active wave layer or liquid bubbles
+    assert.ok(!htmlLink.includes('<div data-testid="liquid-button-wave-layer"'), "Link without stayActiveOnClick must not have active wave layer element");
+    assert.ok(!htmlLink.includes('<div data-testid="liquid-bubbles"'), "Link without stayActiveOnClick must not have bubbles element");
+  });
 });
 

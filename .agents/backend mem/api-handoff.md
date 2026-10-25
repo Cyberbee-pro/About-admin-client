@@ -125,6 +125,7 @@ HTTP Request
 | `GET` | `/api/v1/config` | Public | `application/json` | Get global site config (name, profile picture, history, job titles, bio, resume). |
 | `POST` | `/api/v1/config` | Admin | JSON / Multipart | Create initial site config. Accepts image upload on `pfp`, `pfpUrl`, or `image`. |
 | `PUT` | `/api/v1/config` | Admin | JSON / Multipart | Update or upsert site config. Handles new avatar uploads (appends to history) or reusing historical avatars. |
+| `POST` | `/api/v1/config/resume` | Admin | Multipart | Upload and update resume PDF (`resume`, `resumeFile`, `resumePdf`, `pdf`) without mutating other config fields. |
 | **Admin Request Logs** | | | | |
 | `GET` | `/api/v1/admin/logs` | Admin | `application/json` | Query and filter persisted HTTP request logs with date/level filters and pagination. |
 
@@ -656,6 +657,21 @@ HTTP Request
 {
   "success": true,
   "message": "Site configuration updated successfully",
+  "data": { ...updatedConfig }
+}
+```
+
+#### `POST /api/v1/config/resume`
+- **Access**: Admin
+- **Content-Type**: `multipart/form-data`
+- **Multipart Upload Fields**: `resume`, `resumeFile`, `resumePdf`, or `pdf` (max 1 file)
+  - Streamed to `portfolio/site_config/resume/resume_date_{num}.pdf`
+- **Behavior**: Dedicated endpoint for uploading and replacing the resume PDF. Updates `resumeUrl` and `resumePublicId` on `SiteConfig` without requiring or modifying `name`, `jobTitles`, `statusMessage`, or `bioSummary`.
+- **Response**: `200 OK`
+```json
+{
+  "success": true,
+  "message": "Resume uploaded successfully",
   "data": { ...updatedConfig }
 }
 ```

@@ -269,6 +269,28 @@ describe("API Service Modules", () => {
       assert.ok(capturedBody instanceof FormData);
       assert.strictEqual(res.data.resumeUrl, "https://res.cloudinary.com/demo/resume.pdf");
     });
+
+    test("uploadResumeFile accepts raw File/Blob and attaches it to multipart field 'resume'", async () => {
+      let capturedBody: unknown;
+
+      global.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+        capturedBody = init?.body;
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: { resumeUrl: "https://res.cloudinary.com/demo/direct-resume.pdf" },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }) as typeof fetch;
+
+      const mockFile = new Blob(["%PDF-1.4 direct"], { type: "application/pdf" }) as unknown as File;
+      const res = await uploadResumeFile(mockFile);
+
+      assert.ok(capturedBody instanceof FormData);
+      assert.ok((capturedBody as FormData).get("resume"), "Must append file under 'resume' field name");
+      assert.strictEqual(res.data.resumeUrl, "https://res.cloudinary.com/demo/direct-resume.pdf");
+    });
   });
 
   describe("logService", () => {
