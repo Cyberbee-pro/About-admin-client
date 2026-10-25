@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Skill, Achievement, SkillType } from "@/lib/api/types";
+import { useLatestRequest } from "@/lib/hooks/useLatestRequest";
 import {
   getSkills,
   createSkill,
@@ -32,6 +33,11 @@ export default function SkillsAndAchievementsPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(true);
   const [loadingAchievements, setLoadingAchievements] = useState(true);
+  const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [achievementsError, setAchievementsError] = useState<string | null>(null);
+
+  const { execute: executeLatestSkills } = useLatestRequest();
+  const { execute: executeLatestAchievements } = useLatestRequest();
 
   // Edit states (only one edit panel per section at a time)
   const [editingSkillId, setEditingSkillId] = useState<string | null>(null);
@@ -59,74 +65,60 @@ export default function SkillsAndAchievementsPage() {
 
   // Load Skills from API
   const loadSkills = useCallback(async () => {
-    try {
-      const res = await getSkills();
-      if (res && res.data) {
-        setSkills(res.data);
+    await executeLatestSkills(
+      () => getSkills(),
+      {
+        onSuccess: (res) => {
+          if (res && res.data) {
+            setSkills(res.data);
+            setSkillsError(null);
+          }
+        },
+        onError: (err) => {
+          console.error("Failed to load skills:", err);
+          const errorMsg =
+            err instanceof Error ? err.message : "Failed to fetch skills";
+          setSkillsError(errorMsg);
+        },
+        onSettled: (isLatest) => {
+          if (isLatest) {
+            setLoadingSkills(false);
+          }
+        },
       }
-    } catch (err) {
-      console.error("Failed to load skills:", err);
-      setStatusNotice({
-        type: "error",
-        message: err instanceof Error ? err.message : "Failed to fetch skills",
-      });
-    } finally {
-      setLoadingSkills(false);
-    }
-  }, []);
+    );
+  }, [executeLatestSkills]);
 
   // Load Achievements from API
   const loadAchievements = useCallback(async () => {
-    try {
-      const res = await getAchievements();
-      if (res && res.data) {
-        setAchievements(res.data);
+    await executeLatestAchievements(
+      () => getAchievements(),
+      {
+        onSuccess: (res) => {
+          if (res && res.data) {
+            setAchievements(res.data);
+            setAchievementsError(null);
+          }
+        },
+        onError: (err) => {
+          console.error("Failed to load achievements:", err);
+          const errorMsg =
+            err instanceof Error ? err.message : "Failed to fetch achievements";
+          setAchievementsError(errorMsg);
+        },
+        onSettled: (isLatest) => {
+          if (isLatest) {
+            setLoadingAchievements(false);
+          }
+        },
       }
-    } catch (err) {
-      console.error("Failed to load achievements:", err);
-      setStatusNotice({
-        type: "error",
-        message: err instanceof Error ? err.message : "Failed to fetch achievements",
-      });
-    } finally {
-      setLoadingAchievements(false);
-    }
-  }, []);
+    );
+  }, [executeLatestAchievements]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function initialFetch() {
-      try {
-        const [skillsRes, achsRes] = await Promise.all([
-          getSkills().catch((err) => {
-            console.error("Failed to load skills:", err);
-            return null;
-          }),
-          getAchievements().catch((err) => {
-            console.error("Failed to load achievements:", err);
-            return null;
-          }),
-        ]);
-
-        if (isMounted) {
-          if (skillsRes?.data) setSkills(skillsRes.data);
-          if (achsRes?.data) setAchievements(achsRes.data);
-        }
-      } finally {
-        if (isMounted) {
-          setLoadingSkills(false);
-          setLoadingAchievements(false);
-        }
-      }
-    }
-
-    initialFetch();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    void loadSkills();
+    void loadAchievements();
+  }, [loadSkills, loadAchievements]);
 
   // Handle Add Skill Submit
   const handleAddSkill = async (data: {
@@ -357,6 +349,11 @@ export default function SkillsAndAchievementsPage() {
             <SkillsList
               skills={skills}
               loading={loadingSkills}
+              error={skillsError}
+              onRetry={() => {
+                setLoadingSkills(true);
+                void loadSkills();
+              }}
               onEdit={(skill) => {
                 setEditingSkillId(skill._id);
               }}
@@ -393,6 +390,11 @@ export default function SkillsAndAchievementsPage() {
             <AchievementsList
               achievements={achievements}
               loading={loadingAchievements}
+              error={achievementsError}
+              onRetry={() => {
+                setLoadingAchievements(true);
+                void loadAchievements();
+              }}
               onEdit={(ach) => {
                 setEditingAchievementId(ach._id);
               }}

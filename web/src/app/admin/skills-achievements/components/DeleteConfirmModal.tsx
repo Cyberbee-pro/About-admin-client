@@ -4,7 +4,7 @@ import React from "react";
 
 export interface DeleteConfirmModalProps {
   isOpen: boolean;
-  itemType: "skill" | "achievement";
+  itemType: "skill" | "achievement" | "certificate";
   itemName: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -48,7 +48,7 @@ export function DeleteConfirmModal({
 
         <p className="font-mono text-xs text-eva-text-muted mb-6 leading-relaxed">
           Are you sure you want to permanently delete{" "}
-          <span className="text-white font-semibold">"{itemName}"</span>? This
+          <span className="text-white font-semibold">&quot;{itemName}&quot;</span>? This
           operation cannot be undone and purges the document from active database
           indices.
         </p>

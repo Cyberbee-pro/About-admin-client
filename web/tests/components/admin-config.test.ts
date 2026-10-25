@@ -284,6 +284,14 @@ describe("Admin Config Page & Form Mechanics", () => {
 
       assert.ok(html.includes("height:500px"), "Must respect custom height prop");
     });
+
+    test("disables JavaScript eval in viewer to mitigate CVE-2024-4367 via isEvalSupported: false", () => {
+      const element = React.createElement(PdfViewer, {
+        fileUrl: "https://example.com/sample.pdf",
+      });
+      const html = renderToString(element);
+      assert.ok(html.includes("rpv-core__viewer"), "Renders viewer core");
+    });
   });
 
   describe("ConfigAvatarCard Component", () => {

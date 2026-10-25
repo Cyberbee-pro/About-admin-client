@@ -35,11 +35,61 @@ async function handleAdminProxy(
       );
     }
 
-    // 2. Retrieve server-side environment variables
+    // 2. Defense-in-depth: Origin & CSRF validation for mutating methods (POST, PUT, PATCH, DELETE)
+    const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+    if (MUTATING_METHODS.has(request.method.toUpperCase())) {
+      const originHeader = request.headers.get("origin");
+      if (originHeader) {
+        try {
+          const originHost = new URL(originHeader).host.toLowerCase();
+          const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0].trim();
+          const requestHost = (
+            forwardedHost ||
+            request.headers.get("host") ||
+            new URL(request.url).host
+          ).toLowerCase();
+
+          if (originHost !== requestHost) {
+            return NextResponse.json(
+              {
+                title: "Forbidden",
+                status: 403,
+                detail: "Cross-origin mutation rejected: Origin does not match request host.",
+              },
+              { status: 403 }
+            );
+          }
+        } catch {
+          return NextResponse.json(
+            {
+              title: "Forbidden",
+              status: 403,
+              detail: "Cross-origin mutation rejected: Invalid Origin header.",
+            },
+            { status: 403 }
+          );
+        }
+      } else {
+        const secFetchSite = request.headers.get("sec-fetch-site");
+        if (secFetchSite !== "same-origin" && secFetchSite !== "none") {
+          return NextResponse.json(
+            {
+              title: "Forbidden",
+              status: 403,
+              detail:
+                "Cross-origin mutation rejected: Origin header missing and Sec-Fetch-Site is not same-origin or none.",
+            },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
+    // 3. Retrieve server-side environment variables
     const adminSecret = getAdminSecret();
     const backendBase = getApiUrl();
 
-    // 3. Resolve path segments from route params
+    // 4. Resolve path segments from route params
     const resolvedParams = await Promise.resolve(context.params);
     const pathSegments = resolvedParams?.path || [];
 

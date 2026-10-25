@@ -10,7 +10,7 @@ Edit the "Route" column to match the real app routes. Rows marked `TODO` need yo
 | Dashboard overview | TODO | `dashboard/overview/overview.png` | IMPLEMENTED. Do not rebuild or restyle unless the task says so. Use it as the reference for turning a design into code here. |
 | Status box | dashboard overview | `dashboard/overview/common/status_box.png` | Component used inside overview. Already implemented. |
 | Config | TODO | none in `Pages/` | IMPLEMENTED. No design file here; leave it as is unless the task says otherwise. |
-| Certificates | TODO | `certificates/Cert 1.png`, `certificates/Cert 2.png` | Implement both as parts or states of one page unless told otherwise. |
+| Certificates | `/admin/certificates` | `certificates/Cert 1.png`, `certificates/Cert 2.png` | IMPLEMENTED. Base page layout (Cert 1) with Add Certificate form, large purple upload box, and Past Certificates grid with custom scrollbar (#6bffb6 track / #7b47dc thumb); plus right slide-in Edit Certificate drawer (Cert 2) with dynamic heading, pre-filled fields, orange upload box with dual icons, blue Save button, focus trap, and bottom hazard stripe band. |
 | Experiences | TODO | `experiences/EXP 1.png`, `experiences/EXP 2.png`, `experiences/EXP 3.png` | Implement the full set. |
 | Logs | TODO | `logs/Log - compact.png`, `logs/Log - detail.png` | Likely two views (compact list and detail) of the same page. |
 | Skills and achievements | `/admin/skills-achievements` | `skills and achivements/Skill and achivement.png`, `Skill and achivement 2.png`, `Skill and achivement 3.png` | IMPLEMENTED. Complete 3-state management (base, skill edit, achievement edit) with PatternWaves background, custom scrollbars, and ASCII reveal loading. |

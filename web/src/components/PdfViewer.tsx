@@ -63,6 +63,10 @@ export function PdfViewer({
       <Worker workerUrl={workerUrl}>
         <Viewer
           fileUrl={fileUrl}
+          transformGetDocumentParams={(options) => ({
+            ...options,
+            isEvalSupported: false,
+          })}
           onDocumentLoad={handleDocumentLoad}
           renderLoader={(percentages: number) => (
             <div className="flex flex-col items-center justify-center h-full min-h-[160px] text-white/70 font-mono text-xs gap-2 p-4 text-center select-none">

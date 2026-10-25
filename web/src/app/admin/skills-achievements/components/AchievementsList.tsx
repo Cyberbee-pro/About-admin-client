@@ -7,15 +7,19 @@ import { AsciiReveal, AsciiSkeleton } from "ascii-reveal";
 export interface AchievementsListProps {
   achievements: Achievement[];
   loading?: boolean;
+  error?: string | null;
   onEdit: (achievement: Achievement) => void;
   onDelete: (achievement: Achievement) => void;
+  onRetry?: () => void;
 }
 
 export function AchievementsList({
   achievements,
   loading = false,
+  error = null,
   onEdit,
   onDelete,
+  onRetry,
 }: AchievementsListProps) {
   return (
     <section aria-label="All Achievements Section" className="w-full">
@@ -27,6 +31,24 @@ export function AchievementsList({
         {loading ? (
           <div className="space-y-3 p-2 bg-black/40">
             <AsciiSkeleton lines={4} />
+          </div>
+        ) : error ? (
+          <div
+            data-ascii="surface"
+            className="w-full p-5 text-center border border-dashed border-eva-red/60 bg-eva-red/10 text-eva-red font-mono text-xs uppercase tracking-wider"
+          >
+            <div className="font-bold mb-1">SYSTEM ERROR // FAILED TO RETRIEVE ACHIEVEMENTS</div>
+            <div className="text-white/80 text-[11px] mb-3">{error}</div>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                data-ascii="skip"
+                className="px-3 py-1 border border-eva-red text-white hover:bg-eva-red/30 transition-colors uppercase text-xs cursor-pointer"
+              >
+                [RETRY CONNECTION]
+              </button>
+            )}
           </div>
         ) : achievements.length === 0 ? (
           <div
@@ -62,7 +84,8 @@ export function AchievementsList({
                 {/* Line 3: weight [] featured [] & Actions */}
                 <div className="flex items-center justify-between text-xs font-mono text-white/80 mt-1.5">
                   <div className="flex items-center gap-3">
-                    <span>weight [{ach.weight ?? 0}]</span>
+                    {/* A weight of 0 is not valid in this UI by design; treat 0 or missing as 1 */}
+                    <span>weight [{!ach.weight || ach.weight <= 0 ? 1 : ach.weight}]</span>
                     <span>featured [{ach.featured ? "✓" : " "}]</span>
                   </div>
 
