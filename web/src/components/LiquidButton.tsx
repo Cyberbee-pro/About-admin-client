@@ -80,6 +80,7 @@ export default function LiquidButton({
 }: LiquidButtonProps) {
   const isControlled = isActive !== undefined || active !== undefined;
   const [isFilling, setIsFilling] = useState(false);
+  const [isDraining, setIsDraining] = useState(false);
   const [isClickActive, setIsClickActive] = useState(false);
   const prevActiveRef = useRef(Boolean(isActive || active));
   const hasMountedRef = useRef(false);
@@ -96,6 +97,10 @@ export default function LiquidButton({
     const propActive = Boolean(isActive || active);
     if (!prevActiveRef.current && propActive) {
       setIsFilling(true);
+      setIsDraining(false);
+    } else if (prevActiveRef.current && !propActive) {
+      setIsDraining(true);
+      setIsFilling(false);
     }
     if (isControlled && !propActive) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -113,15 +118,25 @@ export default function LiquidButton({
     }
   }, [isFilling]);
 
+  useEffect(() => {
+    if (isDraining) {
+      const timer = setTimeout(() => {
+        setIsDraining(false);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [isDraining]);
+
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (disabled) {
       e.preventDefault();
       return;
     }
 
-    if (stayActiveOnClick || stayActive) {
+    if ((stayActiveOnClick || stayActive) && !isCurrentlyActive) {
       setIsClickActive(true);
       setIsFilling(true);
+      setIsDraining(false);
     }
 
     if (onClick) {
@@ -181,6 +196,11 @@ export default function LiquidButton({
           80% { transform: translateY(-2%); }
           100% { transform: translateY(0); }
         }
+        @keyframes liquidDrain {
+          0% { transform: translateY(0); }
+          20% { transform: translateY(-2%); }
+          100% { transform: translateY(100%); }
+        }
         @keyframes liquidWaveSlow {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
@@ -225,15 +245,15 @@ export default function LiquidButton({
         className={`absolute inset-0 ${liquidColor} ${
           isFilling
             ? "translate-y-0 opacity-100"
-            : isCurrentlyActive
+            : isCurrentlyActive || isDraining
             ? "translate-y-0 opacity-0 pointer-events-none"
             : "translate-y-full group-hover:translate-y-0 group-focus-visible:translate-y-0 group-active:translate-y-0"
         } transition-transform duration-300 ease-out z-0 pointer-events-none`}
         aria-hidden="true"
       />
 
-      {/* 2. Active Red Liquid Layer (Waves & Effervescent Rising Bubbles) with After-Click Fill Animation */}
-      {(isCurrentlyActive || isFilling) && (
+      {/* 2. Active Red Liquid Layer (Waves & Effervescent Rising Bubbles) with Rise Fill & Drain Animations */}
+      {(isCurrentlyActive || isFilling || isDraining) && (
         <div
           className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"
           aria-hidden="true"
@@ -241,9 +261,15 @@ export default function LiquidButton({
           style={{
             animation: isFilling
               ? "liquidRiseFill 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards"
+              : isDraining
+              ? "liquidDrain 0.35s cubic-bezier(0.4, 0, 0.8, 0.6) forwards"
               : undefined,
           }}
-          onAnimationEnd={() => setIsFilling(false)}
+          onAnimationEnd={(e) => {
+            if (e.target !== e.currentTarget) return;
+            if (isFilling) setIsFilling(false);
+            if (isDraining) setIsDraining(false);
+          }}
         >
           {/* Base active color fill */}
           <div className={`absolute inset-0 ${activeColor}`} />
@@ -319,7 +345,7 @@ export default function LiquidButton({
       {/* Button content (text, icons, etc.) */}
       <span
         className={`relative z-10 transition-colors duration-200 ${
-          isCurrentlyActive || isFilling ? "text-white" : activeTextColor
+          isCurrentlyActive || isFilling || isDraining ? "text-white" : activeTextColor
         } flex items-center justify-center gap-2.5 ${contentClassName}`.trim()}
       >
         {children}
