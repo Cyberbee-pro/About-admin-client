@@ -4,7 +4,7 @@ import React from "react";
 
 export interface DeleteConfirmModalProps {
   isOpen: boolean;
-  itemType: "skill" | "achievement";
+  itemType: "skill" | "achievement" | "certificate";
   itemName: string;
   onConfirm: () => void;
   onCancel: () => void;

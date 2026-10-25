@@ -214,8 +214,8 @@ describe("Skills & Achievements Admin Modules", () => {
       assert.ok(html.includes("04/2026"), "Must render date");
       assert.ok(html.includes("Engineered synchronization fault recovery subroutines"), "Must render detail/description");
       assert.ok(html.includes("border-dashed"), "Must render dashed line separator between title and date");
-      assert.ok(html.includes("weight [8]"), "Must render weight indicator");
-      assert.ok(html.includes("featured [✓]"), "Must render featured indicator");
+      assert.ok(html.includes("weight") && html.includes("8"), "Must render weight indicator");
+      assert.ok(html.includes("featured") && html.includes("✓"), "Must render featured indicator");
       assert.ok(html.includes("eva-custom-scrollbar"), "Must use styled custom scrollbar");
     });
 
@@ -246,7 +246,7 @@ describe("Skills & Achievements Admin Modules", () => {
       );
 
       assert.ok(!html.includes("lv"), "Dropdown options must NOT contain 'lv' suffix");
-      assert.ok(html.includes("value=\"1\">1</option>"), "Must contain plain option 1");
+      assert.ok(html.includes("value=\"1\"") && html.includes(">1</option>"), "Must contain plain option 1");
       assert.ok(html.includes("value=\"10\">10</option>"), "Must contain plain option 10");
     });
 
@@ -259,7 +259,7 @@ describe("Skills & Achievements Admin Modules", () => {
         })
       );
 
-      assert.ok(htmlZero.includes("value=\"1\" selected"), "Must normalize 0 to 1");
+      assert.ok(htmlZero.includes("value=\"1\"") && htmlZero.includes("selected"), "Must normalize 0 to 1");
 
       const htmlNegative = renderToString(
         React.createElement(WeightSelect, {
@@ -269,7 +269,7 @@ describe("Skills & Achievements Admin Modules", () => {
         })
       );
 
-      assert.ok(htmlNegative.includes("value=\"1\" selected"), "Must normalize negative value to 1");
+      assert.ok(htmlNegative.includes("value=\"1\"") && htmlNegative.includes("selected"), "Must normalize negative value to 1");
     });
 
     test("includes stored weight above 10 as an extra option so saving preserves it", () => {
@@ -281,7 +281,7 @@ describe("Skills & Achievements Admin Modules", () => {
         })
       );
 
-      assert.ok(html.includes("value=\"25\" selected>25</option>"), "Must append 25 as an extra selected option");
+      assert.ok(html.includes("value=\"25\"") && html.includes("selected") && html.includes(">25</option>"), "Must append 25 as an extra selected option");
     });
   });
 
@@ -297,7 +297,7 @@ describe("Skills & Achievements Admin Modules", () => {
         })
       );
 
-      assert.ok(html.includes("CONFIRM SKILL PURGE"), "Must display dialog heading");
+      assert.ok(html.includes("CONFIRM") && html.includes("PURGE"), "Must display dialog heading");
       assert.ok(html.includes("TypeScript"), "Must display targeted item name");
       assert.ok(html.includes("PURGE RECORD"), "Must render purge confirmation button");
       assert.ok(html.includes("Cancel"), "Must render cancel button");

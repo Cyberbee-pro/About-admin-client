@@ -194,6 +194,7 @@ export interface CreateCertificateInput {
   mediaUrl?: string;
   link?: string;
   weight?: number;
+  createdAt?: string;
 }
 
 export type UpdateCertificateInput = Partial<CreateCertificateInput>;

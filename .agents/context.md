@@ -15,10 +15,10 @@ The architecture is strictly decoupled: `About-client` never connects directly t
 ## 2. Implementation Status & Audit (October 2026)
 
 ### Key Metrics
-* **Unit & Integration Tests**: 133 tests across 47 test suites passing (`npm test` via native Node.js runner with `tsx`).
+* **Unit & Integration Tests**: 238 tests across 78 test suites passing (`npm test` via native Node.js runner with `tsx`).
 * **TypeScript Health**: 0 type diagnostics under strict mode (`npx tsc --noEmit`).
 * **Framework Stack**: Next.js `16.3.8`, React `19.2.8`, Tailwind CSS `^4`, TypeScript `^5`.
-* **Admin Subsystem**: Admin shell (`AdminSidebar`, `HeaderTitle`, `layout.tsx`) and Overview dashboard (`/admin/overview`) fully operational with Evangelion design system and backend telemetry polling.
+* **Admin Subsystem**: Admin shell (`AdminSidebar`, `HeaderTitle`, `layout.tsx`), Overview dashboard (`/admin/overview`), Skills & Achievements (`/admin/skills-achievements`), and Certificates (`/admin/certificates`) fully operational with Evangelion design system, WebGL PatternWaves background, and backend telemetry polling.
 
 ---
 
