@@ -219,7 +219,7 @@ describe("LiquidButton Component", () => {
     assert.ok(htmlActive.includes("prefers-reduced-motion: reduce"), "Must support prefers-reduced-motion accessibility");
   });
 
-  test("defines liquidRiseFill animation and supports after-click fill and stayActiveOnClick", () => {
+  test("defines liquidRiseFill and liquidDrain animations and supports after-click fill and stayActiveOnClick", () => {
     const html = renderToString(
       React.createElement(
         LiquidButton,
@@ -236,6 +236,10 @@ describe("LiquidButton Component", () => {
     assert.ok(html.includes("@keyframes liquidRiseFill"), "Must define liquidRiseFill keyframes");
     assert.ok(html.includes("transform: translateY(100%)"), "liquidRiseFill must start from bottom 100%");
     assert.ok(html.includes("transform: translateY(0)"), "liquidRiseFill must finish at top 0%");
+
+    // Verify keyframe definition for red liquid drain exit transition
+    assert.ok(html.includes("@keyframes liquidDrain"), "Must define liquidDrain keyframes");
+    assert.ok(html.includes("transform: translateY(-2%)"), "liquidDrain must include surface tension bounce at 20%");
 
     // Verify hover green liquid layer is present
     assert.ok(html.includes("bg-eva-lime"), "Must render hover green liquid layer");
