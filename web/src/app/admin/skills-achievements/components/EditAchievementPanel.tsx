@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Achievement } from "@/lib/api/types";
-import WeightSelect from "./WeightSelect";
+import WeightSelect, { normalizeWeight } from "./WeightSelect";
 
 export interface EditAchievementPanelProps {
   achievement: Achievement;
@@ -26,7 +26,7 @@ export function EditAchievementPanel({
   const [title, setTitle] = useState(achievement.title);
   const [date, setDate] = useState(achievement.date);
   const [detail, setDetail] = useState(achievement.detail);
-  const [weight, setWeight] = useState(achievement.weight || 1);
+  const [weight, setWeight] = useState(normalizeWeight(achievement.weight));
   const [featured, setFeatured] = useState(Boolean(achievement.featured));
   const [error, setError] = useState<string | null>(null);
 

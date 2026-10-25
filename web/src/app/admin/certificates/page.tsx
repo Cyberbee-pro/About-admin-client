@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Certificate } from "@/lib/api/types";
+import { useLatestRequest } from "@/lib/hooks/useLatestRequest";
 import {
   getCertificates,
   createCertificate,
@@ -22,7 +23,7 @@ export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
+  const { execute: executeLatestCertificates } = useLatestRequest();
 
   // Edit Drawer state
   const [editingCert, setEditingCert] = useState<Certificate | null>(null);
@@ -42,40 +43,36 @@ export default function CertificatesPage() {
   } | null>(null);
 
   const loadCertificates = useCallback(async () => {
-    try {
-      const res = await getCertificates();
-      if (isMountedRef.current) {
-        if (res && res.data) {
-          setCertificates(res.data);
-          setError(null);
-        }
+    await executeLatestCertificates(
+      () => getCertificates(),
+      {
+        onSuccess: (res) => {
+          if (res && res.data) {
+            setCertificates(res.data);
+            setError(null);
+          }
+        },
+        onError: (err) => {
+          console.error("Failed to load certificates:", err);
+          const errorMsg =
+            err instanceof Error ? err.message : "Failed to fetch certificates";
+          setError(errorMsg);
+          setStatusNotice({
+            type: "error",
+            message: errorMsg,
+          });
+        },
+        onSettled: (isLatest) => {
+          if (isLatest) {
+            setLoading(false);
+          }
+        },
       }
-    } catch (err) {
-      console.error("Failed to load certificates:", err);
-      if (isMountedRef.current) {
-        const errorMsg =
-          err instanceof Error ? err.message : "Failed to fetch certificates";
-        setError(errorMsg);
-        setStatusNotice({
-          type: "error",
-          message: errorMsg,
-        });
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, []);
+    );
+  }, [executeLatestCertificates]);
 
   useEffect(() => {
-    isMountedRef.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadCertificates();
-
-    return () => {
-      isMountedRef.current = false;
-    };
   }, [loadCertificates]);
 
   // Handle Create Certificate
@@ -105,11 +102,11 @@ export default function CertificatesPage() {
       );
 
       if (res && res.data) {
-        setCertificates((prev) => [res.data, ...prev]);
         setStatusNotice({
           type: "success",
           message: `Certificate "${data.title}" successfully created.`,
         });
+        await loadCertificates();
       }
     } catch (err) {
       const errorMsg =

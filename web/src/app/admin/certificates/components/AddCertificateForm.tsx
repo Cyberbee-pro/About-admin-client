@@ -188,7 +188,7 @@ export function AddCertificateForm({
                   className="bg-transparent text-white font-mono text-xs sm:text-sm px-1 py-0.5 focus:outline-none focus:border-eva-teal w-36 sm:w-40 cursor-pointer [color-scheme:dark]"
                 />
                 <span aria-hidden="true" className="text-white/80 select-none pr-1 text-sm">
-                  
+                  📅
                 </span>
               </div>
             </div>

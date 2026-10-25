@@ -11,6 +11,18 @@ export interface WeightSelectProps {
   selectClassName?: string;
 }
 
+/**
+ * A weight of 0 is NOT a valid value in this UI by design.
+ * Treat missing, NaN, or weight below 1 as 1 (the minimum).
+ */
+export function normalizeWeight(weight: unknown): number {
+  const num = typeof weight === "number" ? weight : Number(weight);
+  if (isNaN(num) || num < 1) {
+    return 1;
+  }
+  return Math.floor(num);
+}
+
 export function WeightSelect({
   id,
   value,
@@ -21,7 +33,7 @@ export function WeightSelect({
 }: WeightSelectProps) {
   // A weight of 0 is NOT a valid value in this UI by design.
   // Treat missing, NaN, or 0 stored weight as 1 (the minimum).
-  const normalizedValue = !value || value <= 0 ? 1 : value;
+  const normalizedValue = normalizeWeight(value);
 
   const baseOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const hasExtraOption = normalizedValue > 10;

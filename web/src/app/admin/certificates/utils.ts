@@ -10,22 +10,23 @@ export function formatCertificateDate(dateInput?: string | Date | null): string 
   if (!dateInput) return "dd/mm/yyyy";
   const d = new Date(dateInput);
   if (isNaN(d.getTime())) return "dd/mm/yyyy";
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const year = d.getUTCFullYear();
   return `${day}/${month}/${year}`;
 }
 
 /**
  * Converts a date string or Date object into "YYYY-MM-DD" for HTML5 <input type="date">.
+ * Uses UTC getters to prevent timezone-shift day drops.
  */
 export function toDateInputValue(dateInput?: string | Date | null): string {
   if (!dateInput) return "";
   const d = new Date(dateInput);
   if (isNaN(d.getTime())) return "";
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 

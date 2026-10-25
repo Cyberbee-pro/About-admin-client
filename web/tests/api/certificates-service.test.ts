@@ -199,6 +199,42 @@ describe("Certificate Service API Integration Layer", () => {
     assert.equal(res.data.title, "Updated Title");
   });
 
+  test("updateCertificate explicitly sends empty string link when cleared in both JSON and FormData", async () => {
+    let capturedJsonBody: any = null;
+    let capturedFormDataBody: any = null;
+
+    global.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+      if (init?.body instanceof FormData) {
+        capturedFormDataBody = init.body;
+      } else {
+        capturedJsonBody = init?.body;
+      }
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            _id: "c-clear",
+            title: "Cleared Link Cert",
+            link: "",
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }) as typeof fetch;
+
+    // 1. JSON update with link: ""
+    await updateCertificate("c-clear", { link: "" });
+    assert.ok(capturedJsonBody, "Must send JSON body");
+    const parsed = typeof capturedJsonBody === "string" ? JSON.parse(capturedJsonBody) : capturedJsonBody;
+    assert.equal(parsed.link, "", "JSON payload must contain link: ''");
+
+    // 2. FormData update with link: ""
+    const mockFile = new Blob(["test"], { type: "image/png" }) as unknown as File;
+    await updateCertificate("c-clear", { link: "" }, { mediaUrl: mockFile });
+    assert.ok(capturedFormDataBody instanceof FormData, "Must send FormData body");
+    assert.equal(capturedFormDataBody.get("link"), "", "FormData payload must contain link: ''");
+  });
+
   test("deleteCertificate performs DELETE by MongoDB ObjectId", async () => {
     let capturedUrl = "";
     let capturedMethod = "";

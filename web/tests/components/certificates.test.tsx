@@ -63,6 +63,25 @@ describe("Certificates Admin Module & Components", () => {
       assert.equal(isValidCredentialUrl(null), false);
       assert.equal(isValidCredentialUrl(undefined), false);
     });
+
+    test("preserves dates under America/Los_Angeles timezone without day-shifting", () => {
+      const prevTZ = process.env.TZ;
+      process.env.TZ = "America/Los_Angeles";
+      try {
+        const utcIsoString = "2025-10-24T00:00:00.000Z";
+        // formatCertificateDate must use UTC methods so 2025-10-24T00:00:00.000Z renders as 24/10/2025
+        assert.equal(formatCertificateDate(utcIsoString), "24/10/2025");
+
+        // toDateInputValue must use UTC methods so input receives "2025-10-24" (not 2025-10-23)
+        const dateInputVal = toDateInputValue(utcIsoString);
+        assert.equal(dateInputVal, "2025-10-24");
+
+        // Save round-trip: parsing date input "2025-10-24" back to ISO preserves 2025-10-24
+        assert.equal(formatCertificateDate(new Date(dateInputVal)), "24/10/2025");
+      } finally {
+        process.env.TZ = prevTZ;
+      }
+    });
   });
 
   describe("CertificateUploadBox Component", () => {
@@ -91,6 +110,59 @@ describe("Certificates Admin Module & Components", () => {
       assert.ok(html.includes("bg-[#e6770b]"), "Drawer upload box must have orange background");
       assert.ok(html.includes("Drag and drop or click to upload"), "Must display prompt copy");
       assert.ok(html.includes("sample.png"), "Shows current image preview when available");
+    });
+
+    test("onKeyDown returns early when event target !== currentTarget to prevent child bubbles triggering picker", () => {
+      let clickTriggered = false;
+      const fakeInput = {
+        click: () => {
+          clickTriggered = true;
+        },
+      };
+
+      const outerDiv = { role: "button" };
+      const childBtn = { tagName: "BUTTON" };
+
+      // Handler matching CertificateUploadBox onKeyDown
+      const handleKeyDown = (e: {
+        target: any;
+        currentTarget: any;
+        key: string;
+        preventDefault: () => void;
+      }) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          fakeInput.click();
+        }
+      };
+
+      // 1. Enter pressed on child element (bubbles to outer div)
+      handleKeyDown({
+        target: childBtn,
+        currentTarget: outerDiv,
+        key: "Enter",
+        preventDefault: () => {},
+      });
+      assert.equal(clickTriggered, false, "Must not trigger click when target !== currentTarget");
+
+      // 2. Space pressed on child element (bubbles to outer div)
+      handleKeyDown({
+        target: childBtn,
+        currentTarget: outerDiv,
+        key: " ",
+        preventDefault: () => {},
+      });
+      assert.equal(clickTriggered, false, "Must not trigger click when Space pressed on child");
+
+      // 3. Enter pressed directly on upload box (target === currentTarget)
+      handleKeyDown({
+        target: outerDiv,
+        currentTarget: outerDiv,
+        key: "Enter",
+        preventDefault: () => {},
+      });
+      assert.equal(clickTriggered, true, "Must trigger click when Enter pressed directly on upload box");
     });
   });
 
@@ -185,6 +257,30 @@ describe("Certificates Admin Module & Components", () => {
       assert.ok(html.includes("SYSTEM ERROR // FAILED TO RETRIEVE CERTIFICATES"), "Must render system error heading");
       assert.ok(html.includes("Network connection refused"), "Must display error details");
     });
+
+    test("treats empty string link as no link, rendering disabled external icon without href", () => {
+      const certEmptyLink: Certificate = {
+        _id: "c-empty-link",
+        title: "Test Cert Empty Link",
+        description: "Desc",
+        organization: "Org",
+        link: "",
+        weight: 1,
+        mediaUrl: "https://example.com/cert.png",
+        createdAt: "2025-10-15T00:00:00.000Z",
+      };
+
+      const html = renderToString(
+        React.createElement(CertificatesGrid, {
+          certificates: [certEmptyLink],
+          onEdit: () => {},
+          onDelete: () => {},
+        })
+      );
+
+      assert.ok(html.includes("title=\"No credential URL provided\""), "Must render disabled placeholder icon");
+      assert.ok(!html.includes("href=\"\""), "Must not render anchor tag with empty href");
+    });
   });
 
   describe("EditCertificateDrawer Component", () => {
@@ -247,6 +343,37 @@ describe("Certificates Admin Module & Components", () => {
         })
       );
       assert.equal(htmlNull, "");
+    });
+
+    test("normalizes stored 0 or negative weight to 1 in EditCertificateDrawer", () => {
+      const certZeroWeight: Certificate = {
+        ...mockCert,
+        weight: 0,
+      };
+      const htmlZero = renderToString(
+        React.createElement(EditCertificateDrawer, {
+          certificate: certZeroWeight,
+          isOpen: true,
+          onClose: () => {},
+          onSave: async () => {},
+        })
+      );
+      assert.ok(htmlZero.includes("value=\"1\"") && htmlZero.includes("selected"), "Must normalize weight 0 to 1");
+      assert.ok(!htmlZero.includes("value=\"0\""), "Must not include 0 option");
+
+      const certNegWeight: Certificate = {
+        ...mockCert,
+        weight: -7,
+      };
+      const htmlNeg = renderToString(
+        React.createElement(EditCertificateDrawer, {
+          certificate: certNegWeight,
+          isOpen: true,
+          onClose: () => {},
+          onSave: async () => {},
+        })
+      );
+      assert.ok(htmlNeg.includes("value=\"1\"") && htmlNeg.includes("selected"), "Must normalize negative weight to 1");
     });
   });
 

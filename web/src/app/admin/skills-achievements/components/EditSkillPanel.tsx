@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Skill, SkillType } from "@/lib/api/types";
 import SkillUploadBox from "./SkillUploadBox";
-import WeightSelect from "./WeightSelect";
+import WeightSelect, { normalizeWeight } from "./WeightSelect";
 
 export interface EditSkillPanelProps {
   skill: Skill;
@@ -25,7 +25,7 @@ export function EditSkillPanel({
   isSaving = false,
 }: EditSkillPanelProps) {
   const [name, setName] = useState(skill.name);
-  const [weight, setWeight] = useState(skill.weight || 1);
+  const [weight, setWeight] = useState(normalizeWeight(skill.weight));
   const [type, setType] = useState<SkillType>(skill.type || "tool");
   const [featured, setFeatured] = useState(Boolean(skill.featured));
   const [logoFile, setLogoFile] = useState<File | null>(null);

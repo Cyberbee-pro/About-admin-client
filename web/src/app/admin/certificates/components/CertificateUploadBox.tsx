@@ -94,6 +94,7 @@ export function CertificateUploadBox({
       aria-label="Upload certificate media"
       onClick={handleClick}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if ((e.key === "Enter" || e.key === " ") && !disabled) {
           e.preventDefault();
           handleClick();

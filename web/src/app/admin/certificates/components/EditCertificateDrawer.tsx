@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Certificate } from "@/lib/api/types";
-import WeightSelect from "@/app/admin/skills-achievements/components/WeightSelect";
+import WeightSelect, {
+  normalizeWeight,
+} from "@/app/admin/skills-achievements/components/WeightSelect";
 import CertificateUploadBox from "./CertificateUploadBox";
 import {
   formatCertificateDate,
@@ -46,7 +48,7 @@ function EditCertificateDrawerContent({
   const [description, setDescription] = useState(certificate.description || "");
   const [link, setLink] = useState(certificate.link || "");
   const [organization, setOrganization] = useState(certificate.organization || "");
-  const [weight, setWeight] = useState(certificate.weight || 1);
+  const [weight, setWeight] = useState(normalizeWeight(certificate.weight));
   const [createdAt, setCreatedAt] = useState(toDateInputValue(certificate.createdAt));
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +162,7 @@ function EditCertificateDrawerContent({
         {
           title: trimmedTitle,
           description: description.trim(),
-          link: trimmedLink || undefined,
+          link: trimmedLink,
           organization: trimmedOrg,
           weight,
           createdAt: createdAt ? new Date(createdAt).toISOString() : undefined,

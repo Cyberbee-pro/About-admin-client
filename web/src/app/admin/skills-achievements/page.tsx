@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Skill, Achievement, SkillType } from "@/lib/api/types";
+import { useLatestRequest } from "@/lib/hooks/useLatestRequest";
 import {
   getSkills,
   createSkill,
@@ -34,7 +35,9 @@ export default function SkillsAndAchievementsPage() {
   const [loadingAchievements, setLoadingAchievements] = useState(true);
   const [skillsError, setSkillsError] = useState<string | null>(null);
   const [achievementsError, setAchievementsError] = useState<string | null>(null);
-  const isMountedRef = React.useRef(true);
+
+  const { execute: executeLatestSkills } = useLatestRequest();
+  const { execute: executeLatestAchievements } = useLatestRequest();
 
   // Edit states (only one edit panel per section at a time)
   const [editingSkillId, setEditingSkillId] = useState<string | null>(null);
@@ -62,67 +65,59 @@ export default function SkillsAndAchievementsPage() {
 
   // Load Skills from API
   const loadSkills = useCallback(async () => {
-    try {
-      const res = await getSkills();
-      if (isMountedRef.current) {
-        if (res && res.data) {
-          setSkills(res.data);
-          setSkillsError(null);
-        }
+    await executeLatestSkills(
+      () => getSkills(),
+      {
+        onSuccess: (res) => {
+          if (res && res.data) {
+            setSkills(res.data);
+            setSkillsError(null);
+          }
+        },
+        onError: (err) => {
+          console.error("Failed to load skills:", err);
+          const errorMsg =
+            err instanceof Error ? err.message : "Failed to fetch skills";
+          setSkillsError(errorMsg);
+        },
+        onSettled: (isLatest) => {
+          if (isLatest) {
+            setLoadingSkills(false);
+          }
+        },
       }
-    } catch (err) {
-      console.error("Failed to load skills:", err);
-      if (isMountedRef.current) {
-        const errorMsg = err instanceof Error ? err.message : "Failed to fetch skills";
-        setSkillsError(errorMsg);
-        setStatusNotice({
-          type: "error",
-          message: errorMsg,
-        });
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setLoadingSkills(false);
-      }
-    }
-  }, []);
+    );
+  }, [executeLatestSkills]);
 
   // Load Achievements from API
   const loadAchievements = useCallback(async () => {
-    try {
-      const res = await getAchievements();
-      if (isMountedRef.current) {
-        if (res && res.data) {
-          setAchievements(res.data);
-          setAchievementsError(null);
-        }
+    await executeLatestAchievements(
+      () => getAchievements(),
+      {
+        onSuccess: (res) => {
+          if (res && res.data) {
+            setAchievements(res.data);
+            setAchievementsError(null);
+          }
+        },
+        onError: (err) => {
+          console.error("Failed to load achievements:", err);
+          const errorMsg =
+            err instanceof Error ? err.message : "Failed to fetch achievements";
+          setAchievementsError(errorMsg);
+        },
+        onSettled: (isLatest) => {
+          if (isLatest) {
+            setLoadingAchievements(false);
+          }
+        },
       }
-    } catch (err) {
-      console.error("Failed to load achievements:", err);
-      if (isMountedRef.current) {
-        const errorMsg = err instanceof Error ? err.message : "Failed to fetch achievements";
-        setAchievementsError(errorMsg);
-        setStatusNotice({
-          type: "error",
-          message: errorMsg,
-        });
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setLoadingAchievements(false);
-      }
-    }
-  }, []);
+    );
+  }, [executeLatestAchievements]);
 
   useEffect(() => {
-    isMountedRef.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadSkills();
     void loadAchievements();
-
-    return () => {
-      isMountedRef.current = false;
-    };
   }, [loadSkills, loadAchievements]);
 
   // Handle Add Skill Submit
