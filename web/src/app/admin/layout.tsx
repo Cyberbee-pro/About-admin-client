@@ -11,8 +11,11 @@ export default function AdminLayout({
       {/* 1. Shared Admin Sidebar */}
       <AdminSidebar />
 
-      {/* 2. Main Administration Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-black">
+      {/* 2. Main Administration Area (Single scroll container for admin content with styled Evangelion scrollbar) */}
+      <div
+        data-admin-scroll-container
+        className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto eva-custom-scrollbar bg-black"
+      >
         {/* Shared Header with Dynamic Monospace Evangelion Breadcrumbs */}
         <HeaderTitle />
 

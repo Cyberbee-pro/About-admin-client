@@ -141,6 +141,17 @@ describe("Admin Components & Overview Modules", () => {
       assert.ok(htmlOffline.includes("text-eva-red"), "Must apply text-eva-red class when offline");
       assert.ok(htmlOffline.includes("bg-eva-red"), "Must apply red indicator badge when offline");
     });
+
+    test("header has sticky top-0 and z-20 for fixed positioning above scrolling page content", () => {
+      const html = renderToString(
+        React.createElement(HeaderTitle, {
+          breadcrumbs: ["Dashboard", "Certificates"],
+        })
+      );
+
+      assert.ok(html.includes("sticky top-0"), "Header must have sticky top-0");
+      assert.ok(html.includes("z-20"), "Header must have z-20 to layer above scrolling content");
+    });
   });
 
   describe("CoreStatusBox & Status Indicators", () => {

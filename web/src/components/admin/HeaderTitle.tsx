@@ -89,7 +89,7 @@ export function HeaderTitle({
   const indicatorColorClass = isHealthy ? "bg-eva-teal animate-pulse" : "bg-eva-red";
 
   return (
-    <header className="h-16 px-8 bg-black flex items-center justify-between sticky top-0 z-10 select-none">
+    <header className="h-16 px-8 bg-black flex items-center justify-between sticky top-0 z-20 select-none">
       {/* Left: Dynamic Breadcrumb Navigation */}
       <div className="flex items-center gap-2">
         <nav

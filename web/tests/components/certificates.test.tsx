@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 import React from "react";
 import { renderToString } from "react-dom/server";
 import { CertificateUploadBox } from "@/app/admin/certificates/components/CertificateUploadBox";
-import { AddCertificateForm } from "@/app/admin/certificates/components/AddCertificateForm";
+import {
+  AddCertificateForm,
+  validateCertificateForm,
+  prepareCertificateData,
+  scrollFieldIntoViewAndFocus,
+} from "@/app/admin/certificates/components/AddCertificateForm";
 import { CertificatesGrid } from "@/app/admin/certificates/components/CertificatesGrid";
 import { EditCertificateDrawer } from "@/app/admin/certificates/components/EditCertificateDrawer";
 import CertificatesPage from "@/app/admin/certificates/page";
@@ -167,7 +172,7 @@ describe("Certificates Admin Module & Components", () => {
   });
 
   describe("AddCertificateForm Component", () => {
-    test("renders Add Certificate fields, calendar icon, weight select, and purple upload box", () => {
+    test("renders all six fields, calendar icon, weight select, and purple upload box", () => {
       const html = renderToString(
         React.createElement(AddCertificateForm, {
           onSubmit: async () => {},
@@ -185,6 +190,181 @@ describe("Certificates Admin Module & Components", () => {
       assert.ok(html.includes("upload cert"), "Must render 'upload cert' heading");
       assert.ok(html.includes("bg-[#7B47DC]"), "Must render purple upload box");
       assert.ok(html.includes("ADD CERTIFICATE"), "Must render submit button");
+    });
+
+    test("form fields have natural height with submit button directly in flow (no inner scroll container)", () => {
+      const htmlNormal = renderToString(
+        React.createElement(AddCertificateForm, {
+          onSubmit: async () => {},
+          isSubmitting: false,
+        })
+      );
+
+      // Verify NO inner scroll container
+      assert.ok(
+        !htmlNormal.includes('data-testid="add-certificate-fields-container"'),
+        "Must NOT render bounded fields container with data-testid"
+      );
+      assert.ok(
+        !htmlNormal.includes("max-h-40"),
+        "Form fields must not have max-h-40 or fixed/bounded height"
+      );
+      assert.ok(
+        !htmlNormal.includes("overflow-y-auto"),
+        "Form fields must not have inner overflow-y-auto"
+      );
+
+      // Verify submit button is rendered and is enabled
+      const submitBtnMatch = htmlNormal.match(
+        /<button[^>]*type="submit"[^>]*>([\s\S]*?)<\/button>/
+      );
+      assert.ok(submitBtnMatch, "Submit button must exist in HTML");
+      assert.ok(
+        submitBtnMatch[0].includes("ADD CERTIFICATE"),
+        "Submit button must display ADD CERTIFICATE text"
+      );
+      assert.ok(
+        !submitBtnMatch[0].includes('disabled=""'),
+        "Submit button must not be disabled when isSubmitting is false"
+      );
+
+      // Verify disabled state when isSubmitting is true
+      const htmlSubmitting = renderToString(
+        React.createElement(AddCertificateForm, {
+          onSubmit: async () => {},
+          isSubmitting: true,
+        })
+      );
+      const submittingBtnMatch = htmlSubmitting.match(
+        /<button[^>]*type="submit"[^>]*>([\s\S]*?)<\/button>/
+      );
+      assert.ok(submittingBtnMatch, "Submit button must exist in submitting HTML");
+      assert.ok(
+        submittingBtnMatch[0].includes("TRANSMITTING..."),
+        "Submit button must display TRANSMITTING... during submit"
+      );
+      assert.ok(
+        submittingBtnMatch[0].includes('disabled=""'),
+        "Submit button must be disabled when isSubmitting is true"
+      );
+    });
+
+    test("submit still calls the create handler with the same payload as before", async () => {
+      let receivedPayload: any = null;
+      const mockOnSubmit = async (data: any) => {
+        receivedPayload = data;
+      };
+
+      const rawInput = {
+        title: "  Certified Kubernetes Security Specialist  ",
+        description: "  Advanced security certification  ",
+        link: "  https://www.cncf.io/verify/cks-456  ",
+        organization: "  Cloud Native Computing Foundation  ",
+        weight: 8,
+        createdAt: "2025-10-24",
+        mediaFile: null,
+      };
+
+      const payload = prepareCertificateData(rawInput);
+      await mockOnSubmit(payload);
+
+      assert.equal(receivedPayload.title, "Certified Kubernetes Security Specialist");
+      assert.equal(receivedPayload.description, "Advanced security certification");
+      assert.equal(receivedPayload.link, "https://www.cncf.io/verify/cks-456");
+      assert.equal(receivedPayload.organization, "Cloud Native Computing Foundation");
+      assert.equal(receivedPayload.weight, 8);
+      assert.ok(receivedPayload.createdAt?.startsWith("2025-10-24"));
+      assert.equal(receivedPayload.mediaFile, null);
+    });
+
+    test("validates form fields and identifies the first invalid field", () => {
+      // 1. Missing title
+      const res1 = validateCertificateForm({ title: "", organization: "AWS" });
+      assert.equal(res1.isValid, false);
+      assert.equal(res1.error, "Title is required");
+      assert.equal(res1.invalidField, "title");
+
+      // 2. Missing organization
+      const res2 = validateCertificateForm({ title: "Solutions Architect", organization: "   " });
+      assert.equal(res2.isValid, false);
+      assert.equal(res2.error, "Organization is required");
+      assert.equal(res2.invalidField, "organization");
+
+      // 3. Invalid credential URL
+      const res3 = validateCertificateForm({
+        title: "Solutions Architect",
+        organization: "AWS",
+        link: "javascript:alert(1)",
+      });
+      assert.equal(res3.isValid, false);
+      assert.equal(res3.error, "Credential URL must start with http:// or https://");
+      assert.equal(res3.invalidField, "link");
+
+      // 4. Valid payload with link
+      const res4 = validateCertificateForm({
+        title: "Solutions Architect",
+        organization: "AWS",
+        link: "https://aws.amazon.com/verify/123",
+      });
+      assert.equal(res4.isValid, true);
+      assert.equal(res4.error, null);
+      assert.equal(res4.invalidField, null);
+
+      // 5. Valid payload without optional link
+      const res5 = validateCertificateForm({
+        title: "Solutions Architect",
+        organization: "AWS",
+      });
+      assert.equal(res5.isValid, true);
+      assert.equal(res5.error, null);
+      assert.equal(res5.invalidField, null);
+    });
+
+    test("failed validation scrolls the first invalid field into view and focuses it without whole page jumping", () => {
+      let focused = false;
+      let preventScrollOption = false;
+      let scrollIntoViewCalled = false;
+      let scrollIntoViewOptions: any = null;
+
+      const mockElement = {
+        focus: (options?: { preventScroll?: boolean }) => {
+          focused = true;
+          preventScrollOption = Boolean(options?.preventScroll);
+        },
+        scrollIntoView: (options?: any) => {
+          scrollIntoViewCalled = true;
+          scrollIntoViewOptions = options;
+        },
+      };
+
+      scrollFieldIntoViewAndFocus(mockElement as unknown as HTMLElement);
+
+      assert.equal(scrollIntoViewCalled, true, "First invalid field must call scrollIntoView");
+      assert.equal(scrollIntoViewOptions.block, "center", "Must scroll element to center of view");
+      assert.ok(
+        scrollIntoViewOptions.behavior === "smooth" || scrollIntoViewOptions.behavior === "auto",
+        "Scroll behavior must be smooth or auto"
+      );
+      assert.equal(focused, true, "First invalid field must be focused");
+      assert.equal(preventScrollOption, true, "Focus must specify preventScroll: true to avoid whole page jumping");
+
+      // Test container fallback when element.scrollIntoView is absent
+      let containerScrolled = false;
+      const mockElementNoScroll = {
+        focus: () => {},
+        getBoundingClientRect: () => ({ top: 320, bottom: 350 }),
+      };
+      const mockContainer = {
+        getBoundingClientRect: () => ({ top: 100, bottom: 250 }),
+        scrollBy: () => {
+          containerScrolled = true;
+        },
+      };
+      scrollFieldIntoViewAndFocus(
+        mockElementNoScroll as unknown as HTMLElement,
+        mockContainer as unknown as HTMLElement
+      );
+      assert.equal(containerScrolled, true, "Falls back to container.scrollBy when scrollIntoView is absent");
     });
   });
 
@@ -212,7 +392,7 @@ describe("Certificates Admin Module & Components", () => {
       },
     ];
 
-    test("renders Past Certificates grid with styled scrollbar and card details", () => {
+    test("renders Past Certificates grid in normal flow without inner scroll container and with card details", () => {
       const html = renderToString(
         React.createElement(CertificatesGrid, {
           certificates: mockCerts,
@@ -222,7 +402,8 @@ describe("Certificates Admin Module & Components", () => {
       );
 
       assert.ok(html.includes("Past Certificates"), "Must render Past Certificates heading");
-      assert.ok(html.includes("eva-custom-scrollbar"), "Must use styled custom scrollbar");
+      assert.ok(!html.includes("overflow-y-auto"), "Must NOT have an inner overflow-y-auto scroll container");
+      assert.ok(!html.includes("max-h-[340px]"), "Must NOT have an inner max-height restriction");
       assert.ok(html.includes("Certified Kubernetes Administrator"), "Must render certificate title");
       assert.ok(html.includes("Linux Foundation"), "Must render organization");
       assert.ok(html.includes("15/10/2025"), "Must render formatted date");
@@ -378,13 +559,15 @@ describe("Certificates Admin Module & Components", () => {
   });
 
   describe("CertificatesPage Component", () => {
-    test("renders WebGL PatternWaves background container and hazard stripe footer", () => {
+    test("renders WebGL PatternWaves background container, sticky hazard stripe footer, and bottom spacing", () => {
       const html = renderToString(React.createElement(CertificatesPage));
 
       assert.ok(html.includes("certificates-pattern-waves"), "Must render PatternWaves WebGL background");
       assert.ok(html.includes("Add Certificate. . . ."), "Must render Add Certificate section");
       assert.ok(html.includes("Past Certificates"), "Must render Past Certificates section");
       assert.ok(html.includes("haz_strip.svg"), "Must render hazard stripe footer");
+      assert.ok(html.includes("sticky bottom-0"), "Hazard stripe footer must be sticky at bottom-0");
+      assert.ok(html.includes("pb-20"), "Content area must have pb-20 / pb-24 bottom spacing");
     });
   });
 });
