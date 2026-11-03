@@ -16,6 +16,16 @@ export interface AddCertificateFormProps {
     mediaFile: File | null;
   }) => Promise<void>;
   isSubmitting?: boolean;
+  initialValues?: {
+    title?: string;
+    description?: string;
+    link?: string;
+    organization?: string;
+    weight?: number;
+    createdAt?: string;
+  };
+  initialError?: string | null;
+  initialInvalidField?: "title" | "organization" | "link" | null;
 }
 
 export function prepareCertificateData(data: {
@@ -109,15 +119,19 @@ export function scrollFieldIntoViewAndFocus(
 export function AddCertificateForm({
   onSubmit,
   isSubmitting = false,
+  initialValues,
+  initialError = null,
+  initialInvalidField = null,
 }: AddCertificateFormProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [link, setLink] = useState("");
-  const [organization, setOrganization] = useState("");
-  const [weight, setWeight] = useState(1);
-  const [createdAt, setCreatedAt] = useState(toDateInputValue(new Date()));
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [description, setDescription] = useState(initialValues?.description ?? "");
+  const [link, setLink] = useState(initialValues?.link ?? "");
+  const [organization, setOrganization] = useState(initialValues?.organization ?? "");
+  const [weight, setWeight] = useState(initialValues?.weight ?? 1);
+  const [createdAt, setCreatedAt] = useState(initialValues?.createdAt ?? toDateInputValue(new Date()));
   const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
+  const [invalidField, setInvalidField] = useState<"title" | "organization" | "link" | null>(initialInvalidField);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const orgInputRef = useRef<HTMLInputElement>(null);
@@ -126,10 +140,12 @@ export function AddCertificateForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInvalidField(null);
 
     const validation = validateCertificateForm({ title, organization, link });
     if (!validation.isValid) {
       setError(validation.error);
+      setInvalidField(validation.invalidField);
       if (validation.invalidField === "title") {
         scrollFieldIntoViewAndFocus(titleInputRef.current);
       } else if (validation.invalidField === "organization") {
@@ -160,8 +176,11 @@ export function AddCertificateForm({
       setWeight(1);
       setCreatedAt(toDateInputValue(new Date()));
       setMediaFile(null);
+      setInvalidField(null);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create certificate");
+      setInvalidField(null);
     }
   };
 
@@ -169,6 +188,7 @@ export function AddCertificateForm({
     <section aria-label="Add Certificate Section" className="w-full">
       <form
         onSubmit={handleSubmit}
+        noValidate
         data-ascii="skip"
         className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
       >
@@ -191,10 +211,18 @@ export function AddCertificateForm({
                 id="add-cert-title"
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (invalidField === "title") {
+                    setInvalidField(null);
+                    setError(null);
+                  }
+                }}
                 disabled={isSubmitting}
                 data-ascii="skip"
                 placeholder="Certificate title"
+                aria-invalid={invalidField === "title" ? true : undefined}
+                aria-describedby={invalidField === "title" && error ? "add-cert-error" : undefined}
                 className="bg-transparent border-b border-white text-white font-mono text-xs sm:text-sm px-1 py-0.5 focus:outline-none focus:border-eva-teal w-full max-w-md transition-colors placeholder:text-white/25"
               />
             </div>
@@ -226,10 +254,19 @@ export function AddCertificateForm({
                 id="add-cert-link"
                 type="url"
                 value={link}
-                onChange={(e) => setLink(e.target.value)}
+                onChange={(e) => {
+                  setLink(e.target.value);
+                  if (invalidField === "link") {
+                    setInvalidField(null);
+                    setError(null);
+                  }
+                }}
+                onInvalid={(e) => e.preventDefault()}
                 disabled={isSubmitting}
                 data-ascii="skip"
                 placeholder="https://example.com/verify"
+                aria-invalid={invalidField === "link" ? true : undefined}
+                aria-describedby={invalidField === "link" && error ? "add-cert-error" : undefined}
                 className="bg-transparent border-b border-white text-white font-mono text-xs sm:text-sm px-1 py-0.5 focus:outline-none focus:border-eva-teal w-full max-w-md transition-colors placeholder:text-white/25"
               />
             </div>
@@ -244,10 +281,18 @@ export function AddCertificateForm({
                 id="add-cert-organization"
                 type="text"
                 value={organization}
-                onChange={(e) => setOrganization(e.target.value)}
+                onChange={(e) => {
+                  setOrganization(e.target.value);
+                  if (invalidField === "organization") {
+                    setInvalidField(null);
+                    setError(null);
+                  }
+                }}
                 disabled={isSubmitting}
                 data-ascii="skip"
                 placeholder="Issuing authority"
+                aria-invalid={invalidField === "organization" ? true : undefined}
+                aria-describedby={invalidField === "organization" && error ? "add-cert-error" : undefined}
                 className="bg-transparent border-b border-white text-white font-mono text-xs sm:text-sm px-1 py-0.5 focus:outline-none focus:border-eva-teal w-full max-w-md transition-colors placeholder:text-white/25"
               />
             </div>
@@ -291,7 +336,7 @@ export function AddCertificateForm({
           <div className="pt-4 flex flex-col items-start gap-2">
             {/* Validation Error Message */}
             {error && (
-              <div role="alert" className="text-eva-red font-mono text-xs">
+              <div id="add-cert-error" role="alert" className="text-eva-red font-mono text-xs">
                 ERR: {error}
               </div>
             )}

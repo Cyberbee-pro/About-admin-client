@@ -249,6 +249,104 @@ describe("Certificates Admin Module & Components", () => {
       );
     });
 
+    test("form disables native browser validation with noValidate so malformed URLs reach custom validation", () => {
+      const html = renderToString(
+        React.createElement(AddCertificateForm, {
+          onSubmit: async () => {},
+        })
+      );
+
+      // Verify form element contains noValidate to prevent native constraint validation blocking
+      assert.ok(
+        html.includes("noValidate") || html.includes("novalidate"),
+        "Form must specify noValidate to allow custom validation flow"
+      );
+
+      // Verify credential url input has type='url'
+      const linkMatch = html.match(/<input[^>]*id="add-cert-link"[^>]*>/);
+      assert.ok(linkMatch, "Credential url input must exist");
+      assert.ok(linkMatch[0].includes('type="url"'), "Credential url input must have type='url'");
+
+      // Verify initial render has no aria-invalid or aria-describedby and no ERR alert element
+      assert.ok(!html.includes('id="add-cert-error"'), "ERR alert must not be rendered when no error");
+      assert.ok(!html.includes('aria-invalid="true"'), "No input should be marked aria-invalid initially");
+      assert.ok(!html.includes('aria-describedby="add-cert-error"'), "No input should reference error alert initially");
+    });
+
+    test("marks title input aria-invalid and references stable ERR alert id when title validation fails", () => {
+      const htmlTitleInvalid = renderToString(
+        React.createElement(AddCertificateForm, {
+          onSubmit: async () => {},
+          initialInvalidField: "title",
+          initialError: "Title is required",
+        })
+      );
+
+      // Stable error alert id
+      assert.ok(htmlTitleInvalid.includes('id="add-cert-error"'), "Error alert must have stable id='add-cert-error'");
+      assert.ok(htmlTitleInvalid.includes('role="alert"'), "Error alert must have role='alert'");
+      assert.ok(
+        htmlTitleInvalid.includes("ERR: <!-- -->Title is required") ||
+          htmlTitleInvalid.includes("ERR: Title is required"),
+        "Error alert must display title error message"
+      );
+
+      // Title input must be marked aria-invalid="true" and reference add-cert-error
+      const titleMatch = htmlTitleInvalid.match(/<input[^>]*id="add-cert-title"[^>]*>/);
+      assert.ok(titleMatch, "Title input must exist");
+      assert.ok(titleMatch[0].includes('aria-invalid="true"'), "Title input must have aria-invalid='true'");
+      assert.ok(titleMatch[0].includes('aria-describedby="add-cert-error"'), "Title input must reference add-cert-error");
+
+      // Organization and link inputs must NOT be marked aria-invalid
+      const orgMatch = htmlTitleInvalid.match(/<input[^>]*id="add-cert-organization"[^>]*>/);
+      assert.ok(orgMatch, "Organization input must exist");
+      assert.ok(!orgMatch[0].includes('aria-invalid="true"'), "Organization input must not have aria-invalid='true'");
+      assert.ok(!orgMatch[0].includes('aria-describedby="add-cert-error"'), "Organization input must not reference add-cert-error");
+    });
+
+    test("marks organization input aria-invalid and references stable ERR alert id when organization validation fails", () => {
+      const htmlOrgInvalid = renderToString(
+        React.createElement(AddCertificateForm, {
+          onSubmit: async () => {},
+          initialInvalidField: "organization",
+          initialError: "Organization is required",
+        })
+      );
+
+      // Stable error alert id
+      assert.ok(htmlOrgInvalid.includes('id="add-cert-error"'), "Error alert must have stable id='add-cert-error'");
+
+      // Organization input must be marked aria-invalid="true" and reference add-cert-error
+      const orgMatch = htmlOrgInvalid.match(/<input[^>]*id="add-cert-organization"[^>]*>/);
+      assert.ok(orgMatch, "Organization input must exist");
+      assert.ok(orgMatch[0].includes('aria-invalid="true"'), "Organization input must have aria-invalid='true'");
+      assert.ok(orgMatch[0].includes('aria-describedby="add-cert-error"'), "Organization input must reference add-cert-error");
+
+      // Title input must NOT be marked aria-invalid
+      const titleMatch = htmlOrgInvalid.match(/<input[^>]*id="add-cert-title"[^>]*>/);
+      assert.ok(titleMatch, "Title input must exist");
+      assert.ok(!titleMatch[0].includes('aria-invalid="true"'), "Title input must not have aria-invalid='true'");
+      assert.ok(!titleMatch[0].includes('aria-describedby="add-cert-error"'), "Title input must not reference add-cert-error");
+    });
+
+    test("marks credential url input aria-invalid when URL validation fails", () => {
+      const htmlLinkInvalid = renderToString(
+        React.createElement(AddCertificateForm, {
+          onSubmit: async () => {},
+          initialInvalidField: "link",
+          initialError: "Credential URL must start with http:// or https://",
+        })
+      );
+
+      const linkMatch = htmlLinkInvalid.match(/<input[^>]*id="add-cert-link"[^>]*>/);
+      assert.ok(linkMatch, "Link input must exist");
+      assert.ok(linkMatch[0].includes('aria-invalid="true"'), "Link input must have aria-invalid='true'");
+      assert.ok(linkMatch[0].includes('aria-describedby="add-cert-error"'), "Link input must reference add-cert-error");
+
+      const titleMatch = htmlLinkInvalid.match(/<input[^>]*id="add-cert-title"[^>]*>/);
+      assert.ok(!titleMatch![0].includes('aria-invalid="true"'), "Title input must not have aria-invalid='true'");
+    });
+
     test("submit still calls the create handler with the same payload as before", async () => {
       let receivedPayload: any = null;
       const mockOnSubmit = async (data: any) => {
