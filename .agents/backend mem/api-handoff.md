@@ -92,10 +92,13 @@ HTTP Request
 | `GET` | `/api/v1/projects` | Public | `application/json` | List visible projects (`status != 'invisible'`). Supports category, featured, and tag filters. |
 | `GET` | `/api/v1/projects/categories` | Public | `application/json` | Distinct categories across all visible projects. |
 | `GET` | `/api/v1/projects/:slug` | Public* | `application/json` | Get single project by slug. Invisible items return 404 unless admin authenticated. |
+| `GET` | `/api/v1/admin/projects` | Admin | `application/json` | List all projects without status filters (including invisible/drafts). Supports status, category, featured, and tag filters. |
 | `POST` | `/api/v1/projects` | Admin | JSON / Multipart | Create a new project. Accepts file uploads for `image`, `videoDemo`, and `threeDModel`. |
 | `PUT` | `/api/v1/projects/:id` | Admin | JSON / Multipart | Update project fields by MongoDB ObjectId. Accepts file uploads. |
 | `DELETE` | `/api/v1/projects/:id` | Admin | `application/json` | Delete project by MongoDB ObjectId. |
 | `POST` | `/api/v1/projects/:slug/versions` | Admin | JSON / Multipart | Append a version release to a project found by slug. Accepts file uploads. |
+| `PUT` | `/api/v1/projects/:slug/versions/:versionId` | Admin | JSON / Multipart | In-place partial update of a project version subdocument. Accepts file uploads with rollback. |
+| `DELETE` | `/api/v1/projects/:slug/versions/:versionId` | Admin | `application/json` | Delete a single project version subdocument. Cloudinary assets are retained. |
 | **Skills** | | | | |
 | `GET` | `/api/v1/skills` | Public | `application/json` | List all skills sorted by `{ weight: 1, name: 1 }`. |
 | `GET` | `/api/v1/skills/:id` | Public | `application/json` | Get single skill by MongoDB ObjectId. |
@@ -125,7 +128,6 @@ HTTP Request
 | `GET` | `/api/v1/config` | Public | `application/json` | Get global site config (name, profile picture, history, job titles, bio, resume). |
 | `POST` | `/api/v1/config` | Admin | JSON / Multipart | Create initial site config. Accepts image upload on `pfp`, `pfpUrl`, or `image`. |
 | `PUT` | `/api/v1/config` | Admin | JSON / Multipart | Update or upsert site config. Handles new avatar uploads (appends to history) or reusing historical avatars. |
-| `POST` | `/api/v1/config/resume` | Admin | Multipart | Upload and update resume PDF (`resume`, `resumeFile`, `resumePdf`, `pdf`) without mutating other config fields. |
 | **Admin Request Logs** | | | | |
 | `GET` | `/api/v1/admin/logs` | Admin | `application/json` | Query and filter persisted HTTP request logs with date/level filters and pagination. |
 
@@ -323,6 +325,85 @@ HTTP Request
   "success": true,
   "message": "Version added successfully",
   "data": { ...updatedProject }
+}
+```
+
+#### `PUT /api/v1/projects/:slug/versions/:versionId`
+- **Access**: Admin (`ADMIN_SECRET` via `Authorization: Bearer <token>` or `x-admin-token: <token>`)
+- **Path Parameters**:
+  - `:slug` (string, lowercase trimmed project slug)
+  - `:versionId` (MongoDB ObjectId string)
+- **Content-Type**: `application/json` or `multipart/form-data`
+- **Multipart Upload Fields**: `image`, `videoDemo`, `threeDModel`
+- **Folder Structure**: `portfolio/projects/<slug>/<sanitized-version-tag>/[images|videos|models]/<slug>_<n>`
+- **Tag Resolution for Folder**: `req.body.versionTag` if present; otherwise queries stored tag from DB for `:versionId`. Rejects with `400` or `404` if neither resolves (never uploads to `misc`).
+- **Body Fields**:
+  - `versionTag` (optional string): Trimmed; non-empty if provided; returns `409 Conflict` if duplicate tag exists on the same project (JS case-insensitive comparison); renaming to own current tag (including casing adjustments) is permitted.
+  - `releaseDate` (optional Date/ISO string): Validated as a valid date; returns `400 Bad Request` if invalid.
+  - `changelog` (optional string array or JSON string array / comma-separated string).
+  - `demoUrl` (optional string URL): Empty string `""` clears the field.
+  - `image` (optional string URL or file upload): Empty string `""` clears URL in document (Cloudinary asset retained).
+  - `videoDemo` (optional string URL or file upload): Empty string `""` clears URL in document (Cloudinary asset retained).
+  - `threeDFileUrl` (optional string URL or file upload on `threeDModel`): Empty string `""` clears URL in document (Cloudinary asset retained).
+  - `isLatest` (optional boolean or `"true"`/`"false"`): If `true`, resets `isLatest: false` on all other versions of the project. If `false` on current latest, allowed and leaves project without a latest version.
+- **Rollback on Failure**: If media files are uploaded and request subsequent processing fails (`400`, `404`, `409`, `500`), uploaded Cloudinary assets are cleaned up via `cleanupUploadedVersionMedia(req)` (`cloudinary.uploader.destroy`).
+- **Response**: `200 OK`
+```json
+{
+  "success": true,
+  "message": "Version updated successfully",
+  "data": { ...updatedProject }
+}
+```
+
+#### `DELETE /api/v1/projects/:slug/versions/:versionId`
+- **Access**: Admin (`ADMIN_SECRET` via `Authorization: Bearer <token>` or `x-admin-token: <token>`)
+- **Path Parameters**:
+  - `:slug` (string, lowercase trimmed project slug)
+  - `:versionId` (MongoDB ObjectId string)
+- **Behavior**: Removes target version from `project.versions`. Deleting latest version does NOT promote another version; project is left with no latest. Existing Cloudinary assets are retained (no destroy calls, consistent with project deletion).
+- **Validation**: Returns `400` for invalid `:versionId` format, `404` if project or version is not found.
+- **Response**: `200 OK`
+```json
+{
+  "success": true,
+  "message": "Version deleted successfully",
+  "data": { ...updatedProject }
+}
+```
+
+#### `GET /api/v1/admin/projects`
+- **Access**: Admin (`ADMIN_SECRET` via `Authorization: Bearer <token>` or `x-admin-token: <token>`)
+- **Query Parameters**:
+  - `status` (optional, `"invisible"` | `"planning"` | `"work_in_progress"` | `"delay_hold"` | `"active"`): Filter by specific project status.
+  - `category` (optional, string): Case-insensitive category match.
+  - `featured` (optional, `"true"` | `"false"`): Strict boolean comparison.
+  - `tag` (optional, string): Case-insensitive match against elements in `tags`.
+- **Sorting**: Featured items first (`featured: -1`), then newest start date descending (`startDate: -1`).
+- **Behavior**: Returns all projects from the database matching query parameters without imposing the public `status != 'invisible'` exclusion, ensuring full visibility of draft and archived projects in admin dashboards.
+- **Response**: `200 OK`
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "_id": "670fa123456789abcdef0001",
+      "title": "Secret Project",
+      "slug": "secret-project",
+      "category": "experimental",
+      "description": "Internal prototype",
+      "featured": false,
+      "tags": ["ai", "robotics"],
+      "skills": [],
+      "startDate": "2026-05-01T00:00:00.000Z",
+      "status": "invisible",
+      "image": "https://res.cloudinary.com/.../image_1.jpg",
+      "contributors": [],
+      "socialLinks": [],
+      "versions": []
+    }
+  ]
 }
 ```
 
@@ -657,21 +738,6 @@ HTTP Request
 {
   "success": true,
   "message": "Site configuration updated successfully",
-  "data": { ...updatedConfig }
-}
-```
-
-#### `POST /api/v1/config/resume`
-- **Access**: Admin
-- **Content-Type**: `multipart/form-data`
-- **Multipart Upload Fields**: `resume`, `resumeFile`, `resumePdf`, or `pdf` (max 1 file)
-  - Streamed to `portfolio/site_config/resume/resume_date_{num}.pdf`
-- **Behavior**: Dedicated endpoint for uploading and replacing the resume PDF. Updates `resumeUrl` and `resumePublicId` on `SiteConfig` without requiring or modifying `name`, `jobTitles`, `statusMessage`, or `bioSummary`.
-- **Response**: `200 OK`
-```json
-{
-  "success": true,
-  "message": "Resume uploaded successfully",
   "data": { ...updatedConfig }
 }
 ```

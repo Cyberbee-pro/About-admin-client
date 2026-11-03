@@ -21,7 +21,7 @@ const SEGMENT_NAME_MAP: Record<string, string> = {
   skills: "Skills",
   achievements: "Achievements",
   certificates: "Certificates",
-  experiences: "Experiences",
+  experiences: "experiences",
   projects: "Projects",
   logs: "System Logs",
 };
