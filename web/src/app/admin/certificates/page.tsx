@@ -107,6 +107,23 @@ export default function CertificatesPage() {
           message: `Certificate "${data.title}" successfully created.`,
         });
         await loadCertificates();
+
+        // Scroll the admin scroll container to top to reveal notice banner and new certificate
+        if (typeof document !== "undefined") {
+          const container = document.querySelector<HTMLElement>(
+            "[data-admin-scroll-container]"
+          );
+          if (container && typeof container.scrollTo === "function") {
+            const prefersReducedMotion =
+              typeof window !== "undefined" &&
+              typeof window.matchMedia === "function" &&
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            container.scrollTo({
+              top: 0,
+              behavior: prefersReducedMotion ? "auto" : "smooth",
+            });
+          }
+        }
       }
     } catch (err) {
       const errorMsg =
@@ -212,16 +229,16 @@ export default function CertificatesPage() {
         />
       </div>
 
-      {/* Notification Banner */}
+      {/* Sticky Notification Banner */}
       {statusNotice && (
         <div
           role="status"
           aria-live="polite"
           data-ascii="skip"
-          className={`mx-6 mt-4 px-4 py-2 border font-mono text-xs flex items-center justify-between z-20 ${
+          className={`sticky top-16 z-30 mx-6 mt-4 px-4 py-2 border font-mono text-xs flex items-center justify-between shadow-lg backdrop-blur-md ${
             statusNotice.type === "error"
-              ? "bg-eva-red/20 border-eva-red text-eva-red"
-              : "bg-eva-lime/10 border-eva-lime text-eva-lime"
+              ? "bg-[#1c0000]/95 border-eva-red text-eva-red"
+              : "bg-[#0b1f14]/95 border-eva-lime text-eva-lime"
           }`}
         >
           <span>{statusNotice.message}</span>
@@ -236,7 +253,7 @@ export default function CertificatesPage() {
       )}
 
       {/* Main Content Area */}
-      <div className="relative z-10 p-6 md:p-8 space-y-10 max-w-[1600px] w-full mx-auto flex-1">
+      <div className="relative z-10 p-6 md:p-8 space-y-10 max-w-[1600px] w-full mx-auto flex-1 pb-20 sm:pb-24">
         {/* Section 1: Add Certificate Form & Upload cert Box */}
         <AddCertificateForm
           onSubmit={handleAddCertificate}
@@ -257,8 +274,8 @@ export default function CertificatesPage() {
         />
       </div>
 
-      {/* Hazard Strip Footer matching Wireframes */}
-      <div className="relative z-10 w-full h-8 sm:h-10 overflow-hidden shrink-0 mt-8">
+      {/* Hazard Strip Footer matching Wireframes pinned at bottom */}
+      <div className="sticky bottom-0 z-20 w-full h-8 sm:h-10 overflow-hidden shrink-0 bg-black">
         <div
           className="w-full h-full"
           style={{

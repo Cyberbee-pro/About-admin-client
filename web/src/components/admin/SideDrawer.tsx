@@ -368,16 +368,33 @@ export function SideDrawer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [drawerState, handleCloseAttempt]);
 
-  // Lock page body scroll while open / animating
+  // Lock page body & admin scroll container while open / animating; restore scroll position on close
   useEffect(() => {
-    if (drawerState !== "closed" && typeof document !== "undefined") {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
+    if (drawerState === "closed" || typeof document === "undefined") {
+      return;
     }
-  }, [drawerState]);
+
+    const originalBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const adminScrollContainer = document.querySelector<HTMLElement>(
+      "[data-admin-scroll-container]"
+    );
+    const originalContainerOverflow = adminScrollContainer ? adminScrollContainer.style.overflow : "";
+    const savedScrollTop = adminScrollContainer ? adminScrollContainer.scrollTop : 0;
+
+    if (adminScrollContainer) {
+      adminScrollContainer.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      if (adminScrollContainer) {
+        adminScrollContainer.style.overflow = originalContainerOverflow;
+        adminScrollContainer.scrollTop = savedScrollTop;
+      }
+    };
+  }, [drawerState !== "closed"]);
 
   // Transitionend listener on panel
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {

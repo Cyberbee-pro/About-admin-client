@@ -136,6 +136,15 @@ When uploading media files (`iconUrl`, `mediaUrls`, `certificateUrls`) for exper
   ```
 - **Purpose:** Resolves the experience's category tag (`focus` vs `extracurricular`) and organization slug so Cloudinary assets are placed into the exact folder path: `portfolio/experiences/{tag}/{orgSlug}/{media|certificates|icons}`.
 
+### 3.5 Multipart Upload Middleware DB Query (`processMediaUploads`) for Project Versions
+When uploading media files (`image`, `videoDemo`, `threeDModel`) for project versions via `PUT /api/v1/projects/:slug/versions/:versionId`, the upload middleware queries MongoDB before the controller executes:
+- **Trigger:** If `req.body.versionTag` is not provided in the request body.
+- **Query:**
+  ```typescript
+  Project.findOne({ slug: rawSlug.toLowerCase().trim() })
+  ```
+- **Purpose:** Resolves the existing version's stored `versionTag` from the subdocument matching `req.params.versionId`. If found, sanitizes the tag and targets `portfolio/projects/{slug}/{sanitizedVersionTag}/[images|videos|models]`. If the versionId is invalid (`400`) or the project/version is missing (`404`), the request halts with an error and never falls back to `misc`.
+
 ---
 
 ## 4. Endpoint Database Interactions
@@ -162,7 +171,8 @@ When uploading media files (`iconUrl`, `mediaUrls`, `certificateUrls`) for exper
   - Default: `{ status: { $ne: "invisible" } }` (hides drafts/archived)
   - `?category=<category>` $\rightarrow$ `filter.category = category.toLowerCase().trim()`
   - `?featured=<true|false>` $\rightarrow$ `filter.featured = featured === "true"`
-  - `?tag=<tag>` $\rightarrow$ `filter.tags = tag.toLowerCase().trim()`
+  - `?tag=<tag>` $\rightarrow$ `filter.tags = { $regex: new RegExp(`^${escapeRegex(tag.trim())}$`, "i") }` (case-insensitive regex match)
+- **Query Parameter Validation:** `category`, `featured`, `tag`, `status` are validated as strings (arrays coerced to `param[0]`; unexpected array shapes return `400 Bad Request`).
 - **Sorting:** Featured projects first (`featured: -1`), then newest start date (`startDate: -1`).
 - **Read Mode:** `.lean()` (returns plain JS objects for optimal memory/speed).
 
@@ -214,6 +224,54 @@ When uploading media files (`iconUrl`, `mediaUrls`, `certificateUrls`) for exper
   3. `project.versions.push(newVersion)`
   4. `await project.save()`
 - **Returns:** Updated project document with newly appended version history entry.
+
+#### `PUT /api/v1/projects/:slug/versions/:versionId`
+- **Scope:** Protected (`authMiddleware`)
+- **Validation:** Verifies `Types.ObjectId.isValid(req.params.versionId)` and `req.params.slug`.
+- **Target Model:** `Project`
+- **DB Operations:**
+  1. `const project = await Project.findOne({ slug })`
+  2. Subdocument lookup: `project.versions.find(v => String(v._id) === versionId)`
+  3. Case-insensitive JS duplicate check: ensures no other version in `project.versions` shares `trimmedTag.toLowerCase()` (renaming to self allowed).
+  4. Updates modified fields (`versionTag`, `releaseDate`, `changelog`, `demoUrl`, `image`, `videoDemo`, `threeDFileUrl`), clearing fields set to `""`.
+  5. Single-truth `isLatest`: if `true`, resets all versions in `project.versions` to `false`, sets current version to `true`. If `false`, leaves project without a latest version.
+  6. `await project.save()` (runs schema validators).
+- **Rollback Hook:** On error (`400`, `404`, `409`, `500`), calls `cleanupUploadedVersionMedia(req)` to destroy just-uploaded Cloudinary assets.
+- **Returns:** Updated project document (`200 OK`).
+
+#### `DELETE /api/v1/projects/:slug/versions/:versionId`
+- **Scope:** Protected (`authMiddleware`)
+- **Validation:** Verifies `Types.ObjectId.isValid(req.params.versionId)` and `req.params.slug`.
+- **Target Model:** `Project`
+- **DB Operations:**
+  1. `const project = await Project.findOne({ slug })`
+  2. Finds version index: `project.versions.findIndex(v => String(v._id) === versionId)`
+  3. `project.versions.splice(index, 1)`
+  4. `await project.save()`
+- **Behavior:** Cloudinary assets are intentionally kept (no destroy calls, consistent with project deletion). Deleting latest version does NOT promote another version.
+- **Returns:** Updated project document (`200 OK`).
+
+#### `GET /api/v1/admin/projects`
+- **Scope:** Protected (`authMiddleware`)
+- **Target Model:** `Project`
+- **DB Operation:** `Project.find(filter).sort({ featured: -1, startDate: -1 }).lean()`
+- **Query Filter Logic:**
+  - Default: `{}` (fetches all projects without any status restriction, fully exposing `invisible`, `planning`, `active`, etc.)
+  - `?status=<status>` $\rightarrow$ `filter.status = status.toLowerCase().trim()` (explicit status filter)
+  - `?category=<category>` $\rightarrow$ `filter.category = category.toLowerCase().trim()`
+  - `?featured=<true|false>` $\rightarrow$ `filter.featured = featured === "true"`
+  - `?tag=<tag>` $\rightarrow$ `filter.tags = { $regex: new RegExp(`^${escapeRegex(tag.trim())}$`, "i") }` (case-insensitive regex match)
+- **Query Parameter Validation:** `category`, `featured`, `tag`, `status` are validated as strings (arrays coerced to `param[0]`; unexpected array shapes return `400 Bad Request`).
+- **Sorting:** Featured projects first (`featured: -1`), then newest start date (`startDate: -1`).
+- **Read Mode:** `.lean()` (returns plain JS objects for optimal memory/speed).
+- **Response Shape:**
+  ```json
+  {
+    "success": true,
+    "count": 3,
+    "data": [...]
+  }
+  ```
 
 ---
 
@@ -596,6 +654,7 @@ Because file uploads occur during the Express middleware pipeline **before** the
   3. Database failure (`500 Internal Server Error`)
   
   The newly uploaded PDF asset is deleted from Cloudinary using `cloudinary.uploader.destroy(resumePublicId)`, keeping storage clean and synchronized with database state.
+- **Version Media Cleanup (`cleanupUploadedVersionMedia`):** If `PUT /api/v1/projects/:slug/versions/:versionId` fails due to validation error (`400`), missing project/version (`404`), duplicate tag collision (`409`), or database failure (`500`), newly uploaded assets recorded in `req.uploadedMediaAssets` are immediately destroyed via `cloudinary.uploader.destroy(publicId, { resource_type })`.
 
 ---
 
@@ -609,10 +668,13 @@ Because file uploads occur during the Express middleware pipeline **before** the
 | `GET` | `/api/v1/projects` | Public | `Project` | `find().sort().lean()` | `status != invisible`, `category`, `featured`, `tag` |
 | `GET` | `/api/v1/projects/categories` | Public | `Project` | `distinct()` | Categories where `status != invisible` |
 | `GET` | `/api/v1/projects/:slug` | Public* | `Project` | `findOne().lean()` | By `slug`; rejects `invisible` if not admin |
+| `GET` | `/api/v1/admin/projects` | Admin | `Project` | `find().sort().lean()` | No status filter (includes `invisible`/drafts); optional `status`, `category`, `featured`, `tag` |
 | `POST` | `/api/v1/projects` | Admin | `Project` | `create()` | Creates project, normalizes tags/skills, verifies unique slug |
 | `PUT` | `/api/v1/projects/:id` | Admin | `Project` | `findByIdAndUpdate()` | Partial update by `_id`, runs validators |
 | `DELETE` | `/api/v1/projects/:id` | Admin | `Project` | `findByIdAndDelete()` | Removes project by `_id` |
 | `POST` | `/api/v1/projects/:slug/versions` | Admin | `Project` | `findOne()` $\rightarrow$ `save()` | Appends version; resets `isLatest` if new is latest |
+| `PUT` | `/api/v1/projects/:slug/versions/:versionId` | Admin | `Project` | `findOne()` $\rightarrow$ `save()` | In-place update of version; tag duplicate check; single-truth `isLatest`; upload cleanup on failure |
+| `DELETE` | `/api/v1/projects/:slug/versions/:versionId` | Admin | `Project` | `findOne()` $\rightarrow$ `save()` | Removes version from `versions` array; Cloudinary assets kept |
 | `GET` | `/api/v1/skills` | Public | `Skill` | `find().sort()` | Optional `type` filter; sorted by `weight: 1, name: 1` |
 | `GET` | `/api/v1/skills/:id` | Public | `Skill` | `findById()` | By `_id` |
 | `POST` | `/api/v1/skills` | Admin | `Skill` | `findOne()` $\rightarrow$ `create()` | Case-insensitive duplicate check on `name` |

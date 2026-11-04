@@ -4,7 +4,7 @@ import React from "react";
 
 export interface DeleteConfirmModalProps {
   isOpen: boolean;
-  itemType: "skill" | "achievement" | "certificate";
+  itemType: "skill" | "achievement" | "certificate" | "experience" | "position";
   itemName: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -51,6 +51,11 @@ export function DeleteConfirmModal({
           <span className="text-white font-semibold">&quot;{itemName}&quot;</span>? This
           operation cannot be undone and purges the document from active database
           indices.
+          {itemType === "experience" && (
+            <span className="block mt-2 text-white/60">
+              Note: Uploaded assets in Cloudinary are retained.
+            </span>
+          )}
         </p>
 
         <div className="flex items-center justify-end gap-3 font-mono text-xs">

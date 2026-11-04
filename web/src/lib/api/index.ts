@@ -6,5 +6,6 @@ export * from "./logService";
 export * from "./skillService";
 export * from "./achievementService";
 export * from "./certificateService";
+export * from "./experienceService";
 export * from "./healthService";
 

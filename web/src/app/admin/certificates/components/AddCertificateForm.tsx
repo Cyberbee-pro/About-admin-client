@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import WeightSelect from "@/app/admin/skills-achievements/components/WeightSelect";
 import CertificateUploadBox from "./CertificateUploadBox";
 import { isValidCredentialUrl, toDateInputValue } from "../utils";
@@ -16,53 +16,157 @@ export interface AddCertificateFormProps {
     mediaFile: File | null;
   }) => Promise<void>;
   isSubmitting?: boolean;
+  initialValues?: {
+    title?: string;
+    description?: string;
+    link?: string;
+    organization?: string;
+    weight?: number;
+    createdAt?: string;
+  };
+  initialError?: string | null;
+  initialInvalidField?: "title" | "organization" | "link" | null;
+}
+
+export function prepareCertificateData(data: {
+  title: string;
+  description: string;
+  link?: string;
+  organization: string;
+  weight: number;
+  createdAt?: string;
+  mediaFile: File | null;
+}) {
+  return {
+    title: data.title.trim(),
+    description: data.description.trim(),
+    link: data.link ? data.link.trim() : undefined,
+    organization: data.organization.trim(),
+    weight: data.weight,
+    createdAt: data.createdAt ? new Date(data.createdAt).toISOString() : undefined,
+    mediaFile: data.mediaFile,
+  };
+}
+
+export function validateCertificateForm(data: {
+  title: string;
+  organization: string;
+  link?: string;
+}): {
+  isValid: boolean;
+  error: string | null;
+  invalidField: "title" | "organization" | "link" | null;
+} {
+  const trimmedTitle = data.title.trim();
+  if (!trimmedTitle) {
+    return { isValid: false, error: "Title is required", invalidField: "title" };
+  }
+
+  const trimmedOrg = data.organization.trim();
+  if (!trimmedOrg) {
+    return {
+      isValid: false,
+      error: "Organization is required",
+      invalidField: "organization",
+    };
+  }
+
+  const trimmedLink = data.link ? data.link.trim() : "";
+  if (trimmedLink && !isValidCredentialUrl(trimmedLink)) {
+    return {
+      isValid: false,
+      error: "Credential URL must start with http:// or https://",
+      invalidField: "link",
+    };
+  }
+
+  return { isValid: true, error: null, invalidField: null };
+}
+
+export function scrollFieldIntoViewAndFocus(
+  element: HTMLElement | null,
+  container?: HTMLElement | null
+) {
+  if (!element) return;
+  const prefersReducedMotion =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const behavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+
+  if (typeof element.scrollIntoView === "function") {
+    try {
+      element.scrollIntoView({ behavior, block: "center" });
+    } catch {
+      element.scrollIntoView();
+    }
+  } else if (container && typeof container.scrollBy === "function") {
+    const containerRect = typeof container.getBoundingClientRect === "function" ? container.getBoundingClientRect() : null;
+    const elementRect = typeof element.getBoundingClientRect === "function" ? element.getBoundingClientRect() : null;
+    const topDiff = containerRect && elementRect ? elementRect.top - containerRect.top - 8 : 50;
+    container.scrollBy({ top: topDiff, behavior });
+  }
+
+  if (typeof element.focus === "function") {
+    try {
+      element.focus({ preventScroll: true });
+    } catch {
+      element.focus();
+    }
+  }
 }
 
 export function AddCertificateForm({
   onSubmit,
   isSubmitting = false,
+  initialValues,
+  initialError = null,
+  initialInvalidField = null,
 }: AddCertificateFormProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [link, setLink] = useState("");
-  const [organization, setOrganization] = useState("");
-  const [weight, setWeight] = useState(1);
-  const [createdAt, setCreatedAt] = useState(toDateInputValue(new Date()));
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [description, setDescription] = useState(initialValues?.description ?? "");
+  const [link, setLink] = useState(initialValues?.link ?? "");
+  const [organization, setOrganization] = useState(initialValues?.organization ?? "");
+  const [weight, setWeight] = useState(initialValues?.weight ?? 1);
+  const [createdAt, setCreatedAt] = useState(initialValues?.createdAt ?? toDateInputValue(new Date()));
   const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
+  const [invalidField, setInvalidField] = useState<"title" | "organization" | "link" | null>(initialInvalidField);
+
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const orgInputRef = useRef<HTMLInputElement>(null);
+  const linkInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInvalidField(null);
 
-    const trimmedTitle = title.trim();
-    if (!trimmedTitle) {
-      setError("Title is required");
-      return;
-    }
-
-    const trimmedOrg = organization.trim();
-    if (!trimmedOrg) {
-      setError("Organization is required");
-      return;
-    }
-
-    const trimmedLink = link.trim();
-    if (trimmedLink && !isValidCredentialUrl(trimmedLink)) {
-      setError("Credential URL must start with http:// or https://");
+    const validation = validateCertificateForm({ title, organization, link });
+    if (!validation.isValid) {
+      setError(validation.error);
+      setInvalidField(validation.invalidField);
+      if (validation.invalidField === "title") {
+        scrollFieldIntoViewAndFocus(titleInputRef.current);
+      } else if (validation.invalidField === "organization") {
+        scrollFieldIntoViewAndFocus(orgInputRef.current);
+      } else if (validation.invalidField === "link") {
+        scrollFieldIntoViewAndFocus(linkInputRef.current);
+      }
       return;
     }
 
     try {
-      await onSubmit({
-        title: trimmedTitle,
-        description: description.trim(),
-        link: trimmedLink || undefined,
-        organization: trimmedOrg,
+      const payload = prepareCertificateData({
+        title,
+        description,
+        link,
+        organization,
         weight,
-        createdAt: createdAt ? new Date(createdAt).toISOString() : undefined,
+        createdAt,
         mediaFile,
       });
+      await onSubmit(payload);
 
       // Reset form on success
       setTitle("");
@@ -72,8 +176,11 @@ export function AddCertificateForm({
       setWeight(1);
       setCreatedAt(toDateInputValue(new Date()));
       setMediaFile(null);
+      setInvalidField(null);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create certificate");
+      setInvalidField(null);
     }
   };
 
@@ -81,29 +188,41 @@ export function AddCertificateForm({
     <section aria-label="Add Certificate Section" className="w-full">
       <form
         onSubmit={handleSubmit}
+        noValidate
         data-ascii="skip"
         className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
       >
-        {/* Left Column: Add Certificate Form Fields */}
-        <div className="lg:col-span-7 space-y-4 font-exo2 text-white">
-          <h2 className="text-2xl sm:text-[28px] font-normal tracking-wide text-white">
+        {/* Left Column: Add Certificate Form Fields in Natural Height */}
+        <div className="lg:col-span-7 flex flex-col font-exo2 text-white">
+          {/* Section Heading */}
+          <h2 className="text-2xl sm:text-[28px] font-normal tracking-wide text-white shrink-0 mb-3">
             Add Certificate. . . .
           </h2>
 
-          <div className="space-y-3 pt-1 text-sm sm:text-base">
+          {/* Form Fields: Natural Flow, No Inner Overflow Container */}
+          <div className="space-y-3 pt-1 text-sm sm:text-base pr-2">
             {/* Title */}
             <div className="flex items-baseline gap-2">
               <label htmlFor="add-cert-title" className="shrink-0 tracking-wide font-normal">
                 Title:
               </label>
               <input
+                ref={titleInputRef}
                 id="add-cert-title"
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (invalidField === "title") {
+                    setInvalidField(null);
+                    setError(null);
+                  }
+                }}
                 disabled={isSubmitting}
                 data-ascii="skip"
                 placeholder="Certificate title"
+                aria-invalid={invalidField === "title" ? true : undefined}
+                aria-describedby={invalidField === "title" && error ? "add-cert-error" : undefined}
                 className="bg-transparent border-b border-white text-white font-mono text-xs sm:text-sm px-1 py-0.5 focus:outline-none focus:border-eva-teal w-full max-w-md transition-colors placeholder:text-white/25"
               />
             </div>
@@ -131,13 +250,23 @@ export function AddCertificateForm({
                 credential url:
               </label>
               <input
+                ref={linkInputRef}
                 id="add-cert-link"
                 type="url"
                 value={link}
-                onChange={(e) => setLink(e.target.value)}
+                onChange={(e) => {
+                  setLink(e.target.value);
+                  if (invalidField === "link") {
+                    setInvalidField(null);
+                    setError(null);
+                  }
+                }}
+                onInvalid={(e) => e.preventDefault()}
                 disabled={isSubmitting}
                 data-ascii="skip"
                 placeholder="https://example.com/verify"
+                aria-invalid={invalidField === "link" ? true : undefined}
+                aria-describedby={invalidField === "link" && error ? "add-cert-error" : undefined}
                 className="bg-transparent border-b border-white text-white font-mono text-xs sm:text-sm px-1 py-0.5 focus:outline-none focus:border-eva-teal w-full max-w-md transition-colors placeholder:text-white/25"
               />
             </div>
@@ -148,13 +277,22 @@ export function AddCertificateForm({
                 organization:
               </label>
               <input
+                ref={orgInputRef}
                 id="add-cert-organization"
                 type="text"
                 value={organization}
-                onChange={(e) => setOrganization(e.target.value)}
+                onChange={(e) => {
+                  setOrganization(e.target.value);
+                  if (invalidField === "organization") {
+                    setInvalidField(null);
+                    setError(null);
+                  }
+                }}
                 disabled={isSubmitting}
                 data-ascii="skip"
                 placeholder="Issuing authority"
+                aria-invalid={invalidField === "organization" ? true : undefined}
+                aria-describedby={invalidField === "organization" && error ? "add-cert-error" : undefined}
                 className="bg-transparent border-b border-white text-white font-mono text-xs sm:text-sm px-1 py-0.5 focus:outline-none focus:border-eva-teal w-full max-w-md transition-colors placeholder:text-white/25"
               />
             </div>
@@ -194,20 +332,21 @@ export function AddCertificateForm({
             </div>
           </div>
 
-          {/* Validation Error Message */}
-          {error && (
-            <div className="text-eva-red font-mono text-xs pt-1">
-              ERR: {error}
-            </div>
-          )}
+          {/* Action & Validation Area in normal flow directly below fields */}
+          <div className="pt-4 flex flex-col items-start gap-2">
+            {/* Validation Error Message */}
+            {error && (
+              <div id="add-cert-error" role="alert" className="text-eva-red font-mono text-xs">
+                ERR: {error}
+              </div>
+            )}
 
-          {/* Action button */}
-          <div className="pt-2">
+            {/* Action button */}
             <button
               type="submit"
               disabled={isSubmitting}
               data-ascii="fade"
-              className="bg-[#1740A2] hover:bg-[#1f4dc2] disabled:opacity-50 text-white font-exo2 text-xs sm:text-sm px-5 py-1.5 tracking-wider uppercase transition-colors"
+              className="bg-[#1740A2] hover:bg-[#1f4dc2] disabled:opacity-50 text-white font-exo2 text-xs sm:text-sm px-5 py-1.5 tracking-wider uppercase transition-colors cursor-pointer"
             >
               {isSubmitting ? "TRANSMITTING..." : "ADD CERTIFICATE"}
             </button>
